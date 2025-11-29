@@ -125,7 +125,7 @@ export const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({
             console.log('Nonce received:', nonce);
 
             setCurrentStep('Please sign the message in your wallet...');
-            const signature = await wallet.signData(userAddress, nonce);
+            const signature = await wallet.signData(nonce, userAddress);
 
             console.log('Message signed:', signature);
             setCurrentStep('Verifying signature...');
