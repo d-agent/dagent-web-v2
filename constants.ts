@@ -15,6 +15,12 @@ export const MOCK_AGENTS: Agent[] = [
     owner: '0x123...456',
     status: 'Active',
     stakedAmount: 5000,
+    // @ts-ignore
+    gasFee: '0.15 ADA',
+    // @ts-ignore
+    contractAddress: 'addr1...8x92',
+    // @ts-ignore
+    blockTime: '20s'
   },
   {
     id: '2',
@@ -30,6 +36,12 @@ export const MOCK_AGENTS: Agent[] = [
     owner: '0xabc...def',
     status: 'Active',
     stakedAmount: 12500,
+    // @ts-ignore
+    gasFee: '0.08 ADA',
+    // @ts-ignore
+    contractAddress: 'addr1...7k21',
+    // @ts-ignore
+    blockTime: '15s'
   },
   {
     id: '3',
@@ -45,6 +57,12 @@ export const MOCK_AGENTS: Agent[] = [
     owner: '0x999...888',
     status: 'Inactive',
     stakedAmount: 100,
+    // @ts-ignore
+    gasFee: '0.05 ADA',
+    // @ts-ignore
+    contractAddress: 'addr1...3m44',
+    // @ts-ignore
+    blockTime: '10s'
   }
 ];
 
@@ -68,10 +86,10 @@ export const MOCK_API_KEYS: ApiKey[] = [
 ];
 
 export const MOCK_TRANSACTIONS = [
-  { id: 'tx_1', type: 'Reward Claim', amount: '+45.20 DAG', date: '2 mins ago', status: 'Confirmed' },
-  { id: 'tx_2', type: 'Agent Stake', amount: '-5000.00 DAG', date: '1 day ago', status: 'Confirmed' },
-  { id: 'tx_3', type: 'API Top-up', amount: '-100.00 USD', date: '3 days ago', status: 'Confirmed' },
-  { id: 'tx_4', type: 'Deployment Fee', amount: '-5.00 DAG', date: '1 week ago', status: 'Confirmed' },
+  { id: 'tx_1', type: 'Reward Claim', amount: '+45.20 DAG', date: '2 mins ago', status: 'Confirmed', hash: '0x88...21a' },
+  { id: 'tx_2', type: 'Agent Stake', amount: '-5000.00 DAG', date: '1 day ago', status: 'Confirmed', hash: '0x33...44b' },
+  { id: 'tx_3', type: 'API Top-up', amount: '-100.00 USD', date: '3 days ago', status: 'Confirmed', hash: '0x11...99c' },
+  { id: 'tx_4', type: 'Deployment Fee', amount: '-5.00 DAG', date: '1 week ago', status: 'Confirmed', hash: '0x22...55d' },
 ];
 
 export const MOCK_STAKES = [
