@@ -13,11 +13,8 @@ interface Message {
     timestamp: Date;
 }
 
-export async function generateStaticParams() {
-  return [];
-}
-
 export default function ChatPage() {
+
     const params = useParams();
     const router = useRouter();
     const agentName = params.agentName as string;
