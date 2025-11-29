@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 import { AuthModule } from './auth';
 import { AgentModule } from './agents';
 import { ApiKeyModule } from './apikeys';
+import { UserModule } from './user';
 
 class ApiSdk {
   private static instance: ApiSdk;
@@ -11,10 +12,12 @@ class ApiSdk {
   public auth: AuthModule;
   public agents: AgentModule;
   public apiKeys: ApiKeyModule;
+  public user: UserModule;
 
   private constructor() {
+    console.log('🔧 ApiSdk: Initializing with baseURL:', process.env.NEXT_PUBLIC_API_URL);
     this.axiosInstance = axios.create({
-      baseURL: process.env.NEXT_PUBLIC_API_URL || 'https://api.dagent.dev',
+      baseURL: process.env.NEXT_PUBLIC_API_URL,
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json',
@@ -26,6 +29,7 @@ class ApiSdk {
     this.auth = new AuthModule(this.axiosInstance);
     this.agents = new AgentModule(this.axiosInstance);
     this.apiKeys = new ApiKeyModule(this.axiosInstance);
+    this.user = new UserModule(this.axiosInstance);
   }
 
   static getInstance(): ApiSdk {
@@ -37,6 +41,7 @@ class ApiSdk {
 
   private setupInterceptors() {
     this.axiosInstance.interceptors.request.use((config) => {
+      console.log(`🚀 API Request [${config.method?.toUpperCase()} ${config.url}]`);
       const token = this.getAccessToken();
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -45,8 +50,12 @@ class ApiSdk {
     });
 
     this.axiosInstance.interceptors.response.use(
-      (response: AxiosResponse) => response.data,
+      (response: AxiosResponse) => {
+        console.log(`🔥 API Response [${response.config.method?.toUpperCase()} ${response.config.url}]:`, response.data);
+        return response.data;
+      },
       (error) => {
+        console.error(`❌ API Error [${error.config?.method?.toUpperCase()} ${error.config?.url}]:`, error.response?.data || error.message);
         if (error.response?.status === 401) {
           this.clearTokens();
           if (typeof window !== 'undefined') {

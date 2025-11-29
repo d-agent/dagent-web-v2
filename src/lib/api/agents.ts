@@ -60,8 +60,12 @@ export class AgentModule {
   }
 
   async getAllAgents() {
+    console.log('🤖 AgentModule: getAllAgents called');
     const response = await this.axios.get('/dagent/all');
-    return z.array(Agent).parse(response);
+    console.log('🤖 AgentModule: Raw response received', response);
+    const parsed = z.array(Agent).parse(response);
+    console.log('🤖 AgentModule: Parsed agents', parsed);
+    return parsed;
   }
 
   async getAgent(id: string) {

@@ -3,9 +3,14 @@ import { useState } from 'react';
 import api from '@/lib/api';
 
 export const useListAgentsQuery = () => {
+  console.log('🎣 useListAgentsQuery: Hook called');
   return useQuery({
     queryKey: ['agents'],
-    queryFn: () => api.agents.getAllAgents(),
+    queryFn: () => {
+      console.log('🎣 useListAgentsQuery: QueryFn executing');
+      return api.agents.getAllAgents();
+    },
+    retry: false, // Disable retries to see error faster
   });
 };
 
@@ -49,6 +54,15 @@ export const useDeleteAgentMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agents'] });
     },
+  });
+};
+
+export const useVerifyAgentMutation = () => {
+  return useMutation({
+    mutationFn: ({ deployedUrl, defaultAgentName }: {
+      deployedUrl: string;
+      defaultAgentName?: string;
+    }) => api.agents.verifyAgent(deployedUrl, defaultAgentName),
   });
 };
 

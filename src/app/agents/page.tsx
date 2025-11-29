@@ -4,13 +4,18 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Plus, Globe, Fuel, Clock, Hash, Edit, Trash2, ArrowRight, ArrowLeft, ChevronRight, Check, MessageSquare, Info } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useListAgentsQuery, useUpdateAgentMutation, useDeleteAgentMutation } from '@/hooks';
 import { MOCK_AGENTS } from '@/lib/constants';
 import { AgentInfoModal } from '@/components/AgentInfoModal';
 import { IntegrationCodeModal } from '@/components/IntegrationCodeModal';
+import CreateAgentForm from '@/components/CreateAgentForm';
 import { Agent } from '@/lib/types';
 
 export default function AgentsPage() {
     const router = useRouter();
+    console.log('📄 AgentsPage: Component rendered');
+    const { data: apiAgents, isLoading } = useListAgentsQuery();
+    console.log('📄 AgentsPage: Hook result -', { apiAgents, isLoading });
     // Default to EXPLORE
     const [subTab, setSubTab] = useState<'EXPLORE' | 'DEPLOY'>('EXPLORE');
     const [view, setView] = useState<'LIST' | 'CREATE'>('LIST');
@@ -19,10 +24,15 @@ export default function AgentsPage() {
     const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
     const [showInfoModal, setShowInfoModal] = useState(false);
     const [showIntegrationModal, setShowIntegrationModal] = useState(false);
+    const [showCreateForm, setShowCreateForm] = useState(false);
+    
+    const updateAgentMutation = useUpdateAgentMutation();
+    const deleteAgentMutation = useDeleteAgentMutation();
 
-    // Filter Logic
+    // Filter Logic - Use API data if available, fallback to mock
     const filteredAgents = useMemo(() => {
-        let agents = subTab === 'DEPLOY' ? MOCK_AGENTS.filter(a => a.owner.startsWith('0x123')) : MOCK_AGENTS;
+        const allAgents = apiAgents && apiAgents.length > 0 ? apiAgents : MOCK_AGENTS;
+        let agents = subTab === 'DEPLOY' ? allAgents.filter(a => (a as any).owner?.startsWith('0x123') || (a as any).isActive) : allAgents;
 
         if (searchQuery) {
             agents = agents.filter(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()) || a.description.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -30,11 +40,19 @@ export default function AgentsPage() {
 
         return agents.sort((a, b) => {
             if (sortBy === 'NAME') return a.name.localeCompare(b.name);
-            if (sortBy === 'COST') return a.costPerRequest - b.costPerRequest;
-            if (sortBy === 'DATE') return new Date(b.deployedAt).getTime() - new Date(a.deployedAt).getTime();
+            if (sortBy === 'COST') {
+                const costA = (a as any).costPerRequest || parseFloat((a as any).agentCost || '0');
+                const costB = (b as any).costPerRequest || parseFloat((b as any).agentCost || '0');
+                return costA - costB;
+            }
+            if (sortBy === 'DATE') {
+                const dateA = (a as any).deployedAt || a.id;
+                const dateB = (b as any).deployedAt || b.id;
+                return dateB.localeCompare(dateA);
+            }
             return 0;
         });
-    }, [subTab, searchQuery, sortBy]);
+    }, [apiAgents, subTab, searchQuery, sortBy]);
 
     if (view === 'CREATE') {
         return (
@@ -166,7 +184,7 @@ export default function AgentsPage() {
 
                     {subTab === 'DEPLOY' && (
                         <button
-                            onClick={() => setView('CREATE')}
+                            onClick={() => setShowCreateForm(true)}
                             className="flex items-center space-x-2 bg-primary text-black px-4 py-2 rounded-lg font-bold text-sm hover:bg-primaryDim transition-colors whitespace-nowrap shadow-[0_0_10px_rgba(0,255,148,0.2)]"
                         >
                             <Plus size={16} /> <span>Create Agent</span>
@@ -175,8 +193,13 @@ export default function AgentsPage() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredAgents.map((agent) => (
+            {isLoading ? (
+                <div className="flex justify-center items-center py-20">
+                    <div className="text-gray-400">Loading agents...</div>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredAgents.map((agent) => (
                     <div key={agent.id} className="group relative bg-surface/50 backdrop-blur-md border border-white/5 rounded-2xl p-6 overflow-hidden hover:border-white/20 transition-all flex flex-col h-full hover:shadow-2xl hover:shadow-primary/5">
 
                         <div className="relative z-10 flex-1">
@@ -184,8 +207,8 @@ export default function AgentsPage() {
                                 <div className="w-12 h-12 bg-surfaceHighlight border border-white/10 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
                                     <Globe size={24} className="text-gray-400 group-hover:text-white transition-colors" />
                                 </div>
-                                <span className={`px-2 py-1 rounded text-[10px] font-mono border ${agent.status === 'Active' ? 'border-green-500/30 text-green-400 bg-green-500/10' : 'border-red-500/30 text-red-400 bg-red-500/10'}`}>
-                                    {agent.status.toUpperCase()}
+                                <span className={`px-2 py-1 rounded text-[10px] font-mono border ${((agent as any).status === 'Active' || (agent as any).isActive) ? 'border-green-500/30 text-green-400 bg-green-500/10' : 'border-red-500/30 text-red-400 bg-red-500/10'}`}>
+                                    {((agent as any).status || ((agent as any).isActive ? 'ACTIVE' : 'INACTIVE')).toUpperCase()}
                                 </span>
                             </div>
 
@@ -193,7 +216,7 @@ export default function AgentsPage() {
                                 <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors flex-1">{agent.name}</h3>
                                 <button
                                     onClick={() => {
-                                        setSelectedAgent(agent);
+                                        setSelectedAgent(agent as Agent);
                                         setShowInfoModal(true);
                                     }}
                                     className="p-1.5 text-gray-500 hover:text-white transition-colors"
@@ -207,22 +230,22 @@ export default function AgentsPage() {
                             {/* Detailed Blockchain Info */}
                             <div className="bg-black/30 rounded-xl p-3 mb-6 space-y-2 border border-white/5">
                                 <div className="flex justify-between text-xs">
-                                    <span className="text-gray-500 flex items-center gap-1"><Fuel size={12} /> Est. Gas</span>
-                                    <span className="text-gray-300 font-mono">{(agent as any).gasFee || '0.1 ADA'}</span>
+                                    <span className="text-gray-500 flex items-center gap-1"><Fuel size={12} /> Cost</span>
+                                    <span className="text-gray-300 font-mono">${(agent as any).agentCost || (agent as any).costPerRequest || '0.05'}</span>
                                 </div>
                                 <div className="flex justify-between text-xs">
-                                    <span className="text-gray-500 flex items-center gap-1"><Clock size={12} /> Block Time</span>
-                                    <span className="text-gray-300 font-mono">{(agent as any).blockTime || '20s'}</span>
+                                    <span className="text-gray-500 flex items-center gap-1"><Clock size={12} /> Skills</span>
+                                    <span className="text-gray-300 font-mono">{(agent as any).skills?.length || 'N/A'}</span>
                                 </div>
                                 <div className="flex justify-between text-xs">
-                                    <span className="text-gray-500 flex items-center gap-1"><Hash size={12} /> Contract</span>
-                                    <span className="text-primary font-mono cursor-pointer hover:underline">{(agent as any).contractAddress || 'addr1...'}</span>
+                                    <span className="text-gray-500 flex items-center gap-1"><Hash size={12} /> URL</span>
+                                    <span className="text-primary font-mono cursor-pointer hover:underline text-xs truncate max-w-24">{(agent as any).deployedUrl || 'N/A'}</span>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-y-1 text-xs font-mono text-gray-500 mb-6">
-                                <div>PROVIDER: <span className="text-gray-300">{agent.provider}</span></div>
-                                <div>MODEL: <span className="text-gray-300">{agent.model}</span></div>
+                                <div>PROVIDER: <span className="text-gray-300">{(agent as any).llmProvider || (agent as any).provider || 'N/A'}</span></div>
+                                <div>PUBLIC: <span className="text-gray-300">{(agent as any).isPublic !== undefined ? ((agent as any).isPublic ? 'Yes' : 'No') : ((agent as any).model || 'N/A')}</span></div>
                             </div>
                         </div>
 
@@ -241,7 +264,7 @@ export default function AgentsPage() {
                                     </button>
                                     <button 
                                         onClick={() => {
-                                            setSelectedAgent(agent);
+                                            setSelectedAgent(agent as Agent);
                                             setShowIntegrationModal(true);
                                         }}
                                         className="flex-1 py-2.5 bg-primary text-black rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
@@ -251,10 +274,27 @@ export default function AgentsPage() {
                                 </div>
                             ) : (
                                 <div className="flex space-x-2">
-                                    <button className="flex-1 py-2 bg-white/5 border border-white/10 text-white rounded-lg font-mono text-xs hover:bg-white/10 transition-colors flex items-center justify-center space-x-2">
+                                    <button 
+                                        onClick={() => {
+                                            updateAgentMutation.mutate({
+                                                id: agent.id,
+                                                data: { isActive: !(agent as any).isActive }
+                                            });
+                                        }}
+                                        disabled={updateAgentMutation.isPending}
+                                        className="flex-1 py-2 bg-white/5 border border-white/10 text-white rounded-lg font-mono text-xs hover:bg-white/10 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+                                    >
                                         <Edit size={12} /> <span>Edit</span>
                                     </button>
-                                    <button className="px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors">
+                                    <button 
+                                        onClick={() => {
+                                            if (confirm('Are you sure you want to delete this agent?')) {
+                                                deleteAgentMutation.mutate(agent.id);
+                                            }
+                                        }}
+                                        disabled={deleteAgentMutation.isPending}
+                                        className="px-3 py-2 bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg hover:bg-red-500/20 transition-colors disabled:opacity-50"
+                                    >
                                         <Trash2 size={14} />
                                     </button>
                                 </div>
@@ -262,7 +302,8 @@ export default function AgentsPage() {
                         </div>
                     </div>
                 ))}
-            </div>
+                </div>
+            )}
 
             <AnimatePresence>
                 {showInfoModal && selectedAgent && (
@@ -280,6 +321,15 @@ export default function AgentsPage() {
                         onClose={() => {
                             setShowIntegrationModal(false);
                             setSelectedAgent(null);
+                        }}
+                    />
+                )}
+                {showCreateForm && (
+                    <CreateAgentForm
+                        onClose={() => setShowCreateForm(false)}
+                        onSuccess={() => {
+                            setShowCreateForm(false);
+                            // Optionally show success message
                         }}
                     />
                 )}
