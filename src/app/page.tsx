@@ -39,11 +39,11 @@ export default function Home() {
             )}
 
             {showWalletModal && (
-                <WalletSelectionModal 
+                <WalletSelectionModal
                     key="wallet-modal"
                     onClose={() => {
                         setShowWalletModal(false);
-                    }} 
+                    }}
                     onConnect={handleConnect}
                     onError={(error: string) => {
                         setNotification({ type: 'error', error });
