@@ -16,12 +16,16 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWallet } from '@/contexts/WalletContext';
-import { WalletSelectionModal } from '@/components/WalletSelectionModal';
 
 export const Header = () => {
     const pathname = usePathname();
     const [showUserMenu, setShowUserMenu] = useState(false);
-    const { isWalletConnected, setIsWalletConnected, showWalletModal, setShowWalletModal } = useWallet();
+    const { isWalletConnected, setIsWalletConnected } = useWallet();
+
+    // Hide header if wallet is not connected
+    if (!isWalletConnected) {
+        return null;
+    }
 
     const navItems = [
         { label: 'Home', href: '/', icon: LayoutGrid },
@@ -42,6 +46,9 @@ export const Header = () => {
                         height={48} 
                         className="w-12 h-12 object-contain"
                         priority
+                        quality={90}
+                        loading="eager"
+                        unoptimized={false}
                     />
                 </Link>
 
@@ -67,63 +74,41 @@ export const Header = () => {
                 </nav>
 
                 <div className="relative">
-                    {isWalletConnected ? (
-                        <>
-                            <button
-                                onClick={() => setShowUserMenu(!showUserMenu)}
-                                className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-surface border border-white/10 text-white hover:border-primary/50 transition-all group"
-                            >
-                                <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-primary to-blue-500" />
-                                <div className="flex flex-col items-start leading-none">
-                                    <span className="font-bold text-[10px] text-gray-400">NeoDev</span>
-                                    <span className="font-mono text-xs text-primary">addr1...9sAd</span>
-                                </div>
-                                <ChevronRight size={14} className={`text-gray-500 transition-transform ${showUserMenu ? 'rotate-90' : ''}`} />
-                            </button>
+                    <button
+                        onClick={() => setShowUserMenu(!showUserMenu)}
+                        className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-surface border border-white/10 text-white hover:border-primary/50 transition-all group"
+                    >
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-primary to-blue-500" />
+                        <div className="flex flex-col items-start leading-none">
+                            <span className="font-bold text-[10px] text-gray-400">NeoDev</span>
+                            <span className="font-mono text-xs text-primary">addr1...9sAd</span>
+                        </div>
+                        <ChevronRight size={14} className={`text-gray-500 transition-transform ${showUserMenu ? 'rotate-90' : ''}`} />
+                    </button>
 
-                            {showUserMenu && (
-                                <div className="absolute top-full right-0 mt-2 w-48 bg-[#0A0A0A] border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1 z-50">
-                                    <Link
-                                        href="/settings"
-                                        onClick={() => setShowUserMenu(false)}
-                                        className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-2"
-                                    >
-                                        <Settings size={16} /> Settings
-                                    </Link>
-                                    <div className="h-[1px] bg-white/5 mx-2 my-1" />
-                                    <button
-                                        onClick={() => {
-                                            setIsWalletConnected(false);
-                                            setShowUserMenu(false);
-                                        }}
-                                        className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
-                                    >
-                                        <LogOut size={16} /> Disconnect
-                                    </button>
-                                </div>
-                            )}
-                        </>
-                    ) : (
-                        <button
-                            onClick={() => setShowWalletModal(true)}
-                            className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:border-primary/50 transition-all flex items-center space-x-2 text-sm font-medium"
-                        >
-                            <Wallet size={16} className="text-primary" />
-                            <span>Connect Wallet</span>
-                        </button>
+                    {showUserMenu && (
+                        <div className="absolute top-full right-0 mt-2 w-48 bg-[#0A0A0A] border border-white/10 rounded-xl shadow-2xl overflow-hidden py-1 z-50">
+                            <Link
+                                href="/settings"
+                                onClick={() => setShowUserMenu(false)}
+                                className="w-full text-left px-4 py-3 text-sm text-gray-300 hover:bg-white/5 hover:text-white flex items-center gap-2"
+                            >
+                                <Settings size={16} /> Settings
+                            </Link>
+                            <div className="h-[1px] bg-white/5 mx-2 my-1" />
+                            <button
+                                onClick={() => {
+                                    setIsWalletConnected(false);
+                                    setShowUserMenu(false);
+                                }}
+                                className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
+                            >
+                                <LogOut size={16} /> Disconnect
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
-
-            {showWalletModal && (
-                <WalletSelectionModal 
-                    onClose={() => setShowWalletModal(false)} 
-                    onConnect={() => {
-                        setIsWalletConnected(true);
-                        setShowWalletModal(false);
-                    }} 
-                />
-            )}
         </header>
     );
 };

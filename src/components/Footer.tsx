@@ -14,6 +14,9 @@ export const Footer = () => (
                         height={70} 
                         className="h-14 w-auto object-contain"
                         priority
+                        quality={90}
+                        loading="eager"
+                        unoptimized={false}
                     />
                 </div>
                 <p className="text-gray-500 text-sm leading-relaxed">

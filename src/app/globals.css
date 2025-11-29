@@ -5,7 +5,6 @@
 :root {
   --font-inter: 'Inter', sans-serif;
   --font-roboto-mono: 'Roboto Mono', monospace;
-  --font-pixel: 'Courier New', monospace; /* Fallback for pixel font */
 }
 
 body {
