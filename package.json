@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-"deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "preview": "opennextjs-cloudflare build && wrangler dev .open-next/worker.js --assets .open-next/assets --compatibility-flags=nodejs_compat",
+"deploy": "opennextjs-cloudflare build && cp -r .open-next/cloudflare .open-next/assets/ && cp -r .open-next/middleware .open-next/assets/ && cp -r .open-next/.build .open-next/assets/ && cp -r .open-next/server-functions .open-next/assets/ && cp .open-next/worker.js .open-next/assets/_worker.js && wrangler pages deploy .open-next/assets --commit-dirty=true",
 "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts"
   },
   "dependencies": {
