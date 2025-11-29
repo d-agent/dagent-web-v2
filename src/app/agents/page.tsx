@@ -32,10 +32,10 @@ export default function AgentsPage() {
     // Filter Logic - Use API data if available, show empty if no data
     const filteredAgents = useMemo(() => {
         const allAgents = apiAgents?.data || [];
-        let agents = subTab === 'DEPLOY' ? allAgents.filter(a => (a as any).owner?.startsWith('0x123') || (a as any).isActive) : allAgents;
+        let agents = subTab === 'DEPLOY' ? allAgents.filter((a: any) => (a as any).owner?.startsWith('0x123') || (a as any).isActive) : allAgents;
 
         if (searchQuery) {
-            agents = agents.filter(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()) || a.description.toLowerCase().includes(searchQuery.toLowerCase()));
+            agents = agents.filter((a: any) => a.name.toLowerCase().includes(searchQuery.toLowerCase()) || a.description.toLowerCase().includes(searchQuery.toLowerCase()));
         }
 
         return agents.sort((a, b) => {
