@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Bot, Brain, Code, Zap, Globe, Shield } from 'lucide-react';
@@ -33,28 +35,35 @@ export const AgentNetwork: React.FC = () => {
         return (
           <React.Fragment key={i}>
             {/* Connection Line */}
-            <div 
+            <div
               className="absolute top-1/2 left-1/2 h-[1px] bg-white/10 origin-left z-0"
               style={{
                 width: radius,
                 transform: `rotate(${angle}deg)`,
               }}
             >
-               {/* Inward flowing beam */}
-               <motion.div
+              {/* Inward flowing beam */}
+              <motion.div
                 className="absolute top-0 right-0 w-20 h-full bg-gradient-to-l from-transparent via-current to-transparent"
                 style={{ color: sat.color }}
                 animate={{ x: [-radius, 0] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "linear", delay: sat.delay }}
-               />
+              />
             </div>
 
             {/* Satellite Node */}
             <motion.div
               className="absolute w-12 h-12 bg-surfaceHighlight border border-white/10 rounded-xl flex items-center justify-center z-10 shadow-lg"
-              style={{ x, y }}
+              style={{
+                left: `calc(50% + ${x}px)`,
+                top: `calc(50% + ${y}px)`,
+                transform: 'translate(-50%, -50%)',
+              }}
               initial={{ opacity: 0, scale: 0 }}
-              animate={{ opacity: 1, scale: 1 }}
+              animate={{ 
+                opacity: 1, 
+                scale: 1,
+              }}
               transition={{ delay: i * 0.1 }}
             >
               <sat.icon size={20} style={{ color: sat.color }} />
@@ -62,7 +71,7 @@ export const AgentNetwork: React.FC = () => {
           </React.Fragment>
         );
       })}
-      
+
       {/* Background Orbit Ring */}
       <div className="absolute inset-0 rounded-full border border-white/5 w-[320px] h-[320px] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 -z-10" />
     </div>
