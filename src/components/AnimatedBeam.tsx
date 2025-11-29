@@ -19,7 +19,13 @@ export const AgentNetwork: React.FC = () => {
   const satelliteRadius = 160; // Distance from center to satellites
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto h-[400px] flex items-center justify-center my-12">
+    <div 
+      className="relative w-full max-w-2xl mx-auto h-[400px] flex items-center justify-center my-12"
+      style={{
+        willChange: 'transform',
+        transform: 'translateZ(0)',
+      }}
+    >
       {/* Orbiting Satellites - Outside */}
       {satellites.map((sat, i) => {
         const angle = (i * 360) / satellites.length;
@@ -29,45 +35,48 @@ export const AgentNetwork: React.FC = () => {
         const innerY = Math.sin((angle * Math.PI) / 180) * circleRadius;
 
         const lineLength = satelliteRadius - circleRadius;
-        const lineCenterX = (x + innerX) / 2;
-        const lineCenterY = (y + innerY) / 2;
         
         return (
           <React.Fragment key={i}>
-            {/* Connection Line - From satellite to circle edge */}
+            {/* Connection Line - From circle edge to satellite */}
             <div
-              className="absolute h-[1px] origin-left z-0"
+              className="absolute origin-left z-0"
               style={{
-                width: lineLength,
+                width: `${lineLength}px`,
+                height: '2px',
                 left: `calc(50% + ${innerX}px)`,
                 top: `calc(50% + ${innerY}px)`,
-                transform: `rotate(${angle}deg)`,
+                transform: `rotate(${angle}deg) translateZ(0)`,
                 transformOrigin: '0 50%',
+                willChange: 'transform',
               }}
             >
               {/* Static connection line */}
               <div 
-                className="absolute top-0 left-0 w-full h-full bg-gradient-to-l opacity-20"
+                className="absolute top-0 left-0 w-full h-full bg-gradient-to-r opacity-20"
                 style={{ 
-                  background: `linear-gradient(to left, transparent, ${sat.color})`
+                  background: `linear-gradient(to right, ${sat.color}40, ${sat.color})`
                 }}
               />
               
               {/* Flowing beam animation */}
               <motion.div
-                className="absolute top-0 right-0 h-full bg-gradient-to-l opacity-70"
+                className="absolute top-0 left-0 h-full bg-gradient-to-r opacity-70"
                 style={{ 
-                  background: `linear-gradient(to left, transparent, ${sat.color}, transparent)`,
+                  background: `linear-gradient(to right, transparent, ${sat.color}, transparent)`,
                   width: '60px',
+                  willChange: 'transform',
+                  transform: 'translateZ(0)',
                 }}
                 animate={{ 
-                  x: [0, -lineLength],
+                  x: [0, lineLength],
                 }}
                 transition={{ 
                   duration: 2, 
                   repeat: Infinity, 
                   ease: "linear", 
-                  delay: sat.delay 
+                  delay: sat.delay,
+                  type: "tween",
                 }}
               />
             </div>
@@ -77,34 +86,49 @@ export const AgentNetwork: React.FC = () => {
               className="absolute top-1/2 left-1/2 h-[1px] origin-left z-5"
               style={{
                 width: circleRadius * 0.7,
-                transform: `rotate(${angle}deg)`,
+                transform: `rotate(${angle}deg) translateZ(0)`,
                 transformOrigin: '0 50%',
+                willChange: 'transform',
               }}
             >
               <motion.div
                 className="absolute top-0 left-0 w-full h-full bg-gradient-to-r opacity-80"
                 style={{ 
-                  background: `linear-gradient(to right, transparent, ${sat.color}, transparent)`
+                  background: `linear-gradient(to right, transparent, ${sat.color}, transparent)`,
+                  willChange: 'opacity',
+                  transform: 'translateZ(0)',
                 }}
                 animate={{ opacity: [0.4, 0.9, 0.4] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: sat.delay }}
+                transition={{ 
+                  duration: 1.5, 
+                  repeat: Infinity, 
+                  ease: [0.4, 0, 0.6, 1],
+                  delay: sat.delay,
+                  type: "tween",
+                }}
               />
             </div>
 
-            {/* Satellite Node - With black outline for aesthetic look */}
+            {/* Satellite Node */}
             <motion.div
               className="absolute flex items-center justify-center z-10"
               style={{
                 left: `calc(50% + ${x}px)`,
                 top: `calc(50% + ${y}px)`,
-                transform: 'translate(-50%, -50%)',
+                transform: 'translate3d(-50%, -50%, 0)',
+                willChange: 'transform, opacity',
               }}
               initial={{ opacity: 0, scale: 0 }}
               animate={{ 
                 opacity: 1, 
                 scale: 1,
               }}
-              transition={{ delay: i * 0.1 }}
+              transition={{ 
+                delay: i * 0.1,
+                type: "spring",
+                stiffness: 200,
+                damping: 15,
+              }}
             >
               <IconWithOutline 
                 icon={sat.icon} 
@@ -119,7 +143,14 @@ export const AgentNetwork: React.FC = () => {
       {/* Central Hub */}
       <div className="relative z-20 w-32 h-32 bg-black border-2 border-primary rounded-full flex items-center justify-center shadow-[0_0_50px_rgba(0,255,148,0.3)] overflow-hidden">
         {/* Animated inner glow */}
-        <div className="absolute inset-0 bg-primary/10 rounded-full animate-pulse-slow"></div>
+        <div 
+          className="absolute inset-0 bg-primary/10 rounded-full"
+          style={{
+            willChange: 'opacity',
+            transform: 'translateZ(0)',
+            animation: 'pulse-smooth 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+          }}
+        ></div>
         
         {/* Inner connection lines container */}
         <div className="absolute inset-0 rounded-full">
@@ -136,8 +167,9 @@ export const AgentNetwork: React.FC = () => {
                   left: `calc(50% + ${innerX}px)`,
                   top: `calc(50% + ${innerY}px)`,
                   backgroundColor: sat.color,
-                  transform: 'translate(-50%, -50%)',
+                  transform: 'translate3d(-50%, -50%, 0)',
                   boxShadow: `0 0 8px ${sat.color}`,
+                  willChange: 'opacity, transform',
                 }}
                 animate={{ 
                   opacity: [0.3, 1, 0.3],
@@ -146,8 +178,9 @@ export const AgentNetwork: React.FC = () => {
                 transition={{ 
                   duration: 2, 
                   repeat: Infinity, 
-                  ease: "easeInOut", 
-                  delay: sat.delay 
+                  ease: [0.4, 0, 0.6, 1],
+                  delay: sat.delay,
+                  type: "tween",
                 }}
               />
             );

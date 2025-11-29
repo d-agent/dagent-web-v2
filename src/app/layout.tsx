@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WalletProvider } from "@/contexts/WalletContext";
+import { NotificationWrapper } from "@/components/NotificationWrapper";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const robotoMono = Roboto_Mono({ subsets: ["latin"], variable: "--font-roboto-mono" });
@@ -28,6 +29,7 @@ export default function RootLayout({
                         {children}
                     </main>
                     <Footer />
+                    <NotificationWrapper />
                 </WalletProvider>
             </body>
         </html>

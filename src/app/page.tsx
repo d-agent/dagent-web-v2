@@ -1,29 +1,36 @@
 "use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, Cpu, Database, Shield, Zap, Wallet } from 'lucide-react';
 import { AgentNetwork } from '@/components/AnimatedBeam';
 import { WalletSelectionModal } from '@/components/WalletSelectionModal';
+import { WalletNotification } from '@/components/WalletNotification';
 import { useWallet } from '@/contexts/WalletContext';
 import Link from 'next/link';
 
 export default function Home() {
-    const { isWalletConnected, setIsWalletConnected, showWalletModal, setShowWalletModal } = useWallet();
+    const { isWalletConnected, setIsWalletConnected, showWalletModal, setShowWalletModal, notification, setNotification } = useWallet();
 
     const handleConnect = () => {
+        setNotification({ type: 'success', message: 'Wallet connected successfully!' });
         setIsWalletConnected(true);
         setShowWalletModal(false);
+    };
+
+    const handleOpenModal = () => {
+        setShowWalletModal(true);
     };
 
     return (
         <div className="min-h-screen flex flex-col w-full">
             {/* Top Right Connect Button (Only visible on Landing when not connected) */}
             {!isWalletConnected && (
-                <div className="absolute top-6 right-6 z-50">
+                <div className="absolute top-6 right-6 z-40">
                     <button
-                        onClick={() => setShowWalletModal(true)}
-                        className="bg-white/5 backdrop-blur-md border border-white/10 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-white/10 transition-all flex items-center space-x-2 shadow-lg"
+                        type="button"
+                        onClick={handleOpenModal}
+                        className="bg-white/5 backdrop-blur-md border border-white/10 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-white/10 transition-all flex items-center space-x-2 shadow-lg cursor-pointer"
                     >
                         <Wallet size={16} className="text-primary" />
                         <span>Connect with Cardano</span>
@@ -32,8 +39,31 @@ export default function Home() {
             )}
 
             {showWalletModal && (
-                <WalletSelectionModal onClose={() => setShowWalletModal(false)} onConnect={handleConnect} />
+                <WalletSelectionModal 
+                    key="wallet-modal"
+                    onClose={() => {
+                        setShowWalletModal(false);
+                    }} 
+                    onConnect={handleConnect}
+                    onError={(error: string) => {
+                        setNotification({ type: 'error', error });
+                    }}
+                    onConnecting={() => {
+                        // Don't show notification during connecting - modal handles it
+                    }}
+                />
             )}
+
+            <AnimatePresence>
+                {notification.type && (
+                    <WalletNotification
+                        type={notification.type}
+                        message={notification.message}
+                        error={notification.error}
+                        onClose={() => setNotification({ type: null })}
+                    />
+                )}
+            </AnimatePresence>
 
             <div className="pt-32 px-6 w-full space-y-24 flex-1">
                 {/* Hero Section */}
@@ -63,8 +93,9 @@ export default function Home() {
                     <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
                         {!isWalletConnected ? (
                             <button
-                                onClick={() => setShowWalletModal(true)}
-                                className="group relative px-8 py-4 bg-white text-black rounded-xl font-bold text-lg overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+                                type="button"
+                                onClick={handleOpenModal}
+                                className="group relative px-8 py-4 bg-white text-black rounded-xl font-bold text-lg overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer"
                             >
                                 <div className="absolute inset-0 bg-gradient-to-r from-primary to-emerald-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <span className="relative flex items-center space-x-2">
@@ -85,7 +116,7 @@ export default function Home() {
                         )}
 
                         <Link
-                            href="/frameworks"
+                            href="https://github.com/d-agent"
                             className="px-8 py-4 bg-transparent border border-white/20 text-white rounded-xl font-medium hover:bg-white/5 transition-all"
                         >
                             Read Documentation

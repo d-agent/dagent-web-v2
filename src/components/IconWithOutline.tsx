@@ -15,7 +15,15 @@ export const IconWithOutline: React.FC<IconWithOutlineProps> = ({
   className = '' 
 }) => {
   return (
-    <div className={`relative inline-flex items-center justify-center ${className}`} style={{ width: size, height: size }}>
+    <div 
+      className={`relative inline-flex items-center justify-center ${className}`} 
+      style={{ 
+        width: size, 
+        height: size,
+        willChange: 'transform',
+        transform: 'translateZ(0)', // GPU acceleration
+      }}
+    >
       {/* Black outline layer - slightly larger and black */}
       <Icon 
         size={size + 4} 
@@ -23,6 +31,7 @@ export const IconWithOutline: React.FC<IconWithOutlineProps> = ({
         style={{ 
           color: '#000000',
           strokeWidth: 4,
+          transform: 'translateZ(0)',
         }} 
       />
       {/* Colored icon on top */}
@@ -32,6 +41,7 @@ export const IconWithOutline: React.FC<IconWithOutlineProps> = ({
         style={{ 
           color: color,
           filter: `drop-shadow(0 0 8px ${color}) drop-shadow(0 0 4px ${color})`,
+          transform: 'translateZ(0)',
         }} 
       />
     </div>

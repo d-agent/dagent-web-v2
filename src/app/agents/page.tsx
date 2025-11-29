@@ -1,16 +1,24 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Search, Plus, Globe, Fuel, Clock, Hash, Edit, Trash2, ArrowRight, ArrowLeft, ChevronRight, Check } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Plus, Globe, Fuel, Clock, Hash, Edit, Trash2, ArrowRight, ArrowLeft, ChevronRight, Check, MessageSquare, Info } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { MOCK_AGENTS } from '@/lib/constants';
+import { AgentInfoModal } from '@/components/AgentInfoModal';
+import { IntegrationCodeModal } from '@/components/IntegrationCodeModal';
+import { Agent } from '@/lib/types';
 
 export default function AgentsPage() {
+    const router = useRouter();
     // Default to EXPLORE
     const [subTab, setSubTab] = useState<'EXPLORE' | 'DEPLOY'>('EXPLORE');
     const [view, setView] = useState<'LIST' | 'CREATE'>('LIST');
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState<'NAME' | 'COST' | 'DATE'>('NAME');
+    const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
+    const [showInfoModal, setShowInfoModal] = useState(false);
+    const [showIntegrationModal, setShowIntegrationModal] = useState(false);
 
     // Filter Logic
     const filteredAgents = useMemo(() => {
@@ -181,7 +189,19 @@ export default function AgentsPage() {
                                 </span>
                             </div>
 
-                            <h3 className="text-xl font-bold text-white mb-2 group-hover:text-primary transition-colors">{agent.name}</h3>
+                            <div className="flex items-start justify-between mb-2">
+                                <h3 className="text-xl font-bold text-white group-hover:text-primary transition-colors flex-1">{agent.name}</h3>
+                                <button
+                                    onClick={() => {
+                                        setSelectedAgent(agent);
+                                        setShowInfoModal(true);
+                                    }}
+                                    className="p-1.5 text-gray-500 hover:text-white transition-colors"
+                                    title="View Agent Info"
+                                >
+                                    <Info size={18} />
+                                </button>
+                            </div>
                             <p className="text-gray-400 text-sm mb-6 line-clamp-2">{agent.description}</p>
 
                             {/* Detailed Blockchain Info */}
@@ -208,9 +228,27 @@ export default function AgentsPage() {
 
                         <div className="mt-auto">
                             {subTab === 'EXPLORE' ? (
-                                <button className="w-full py-3 bg-white text-black rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors shadow-lg flex items-center justify-center gap-2 group-hover:gap-3">
-                                    Integrate Agent <ArrowRight size={14} />
-                                </button>
+                                <div className="flex gap-2">
+                                    <button 
+                                        onClick={() => {
+                                            const agentSlug = agent.name.toLowerCase().replace(/\s+/g, '-');
+                                            router.push(`/chat/${agentSlug}`);
+                                        }}
+                                        className="flex-1 py-2.5 bg-black border border-primary text-primary rounded-lg font-medium text-sm hover:bg-black/80 hover:border-primary/60 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        <MessageSquare size={14} />
+                                        Chat Now
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            setSelectedAgent(agent);
+                                            setShowIntegrationModal(true);
+                                        }}
+                                        className="flex-1 py-2.5 bg-primary text-black rounded-lg font-medium text-sm hover:bg-primary/90 transition-colors flex items-center justify-center gap-2"
+                                    >
+                                        Integrate <ArrowRight size={14} />
+                                    </button>
+                                </div>
                             ) : (
                                 <div className="flex space-x-2">
                                     <button className="flex-1 py-2 bg-white/5 border border-white/10 text-white rounded-lg font-mono text-xs hover:bg-white/10 transition-colors flex items-center justify-center space-x-2">
@@ -225,6 +263,27 @@ export default function AgentsPage() {
                     </div>
                 ))}
             </div>
+
+            <AnimatePresence>
+                {showInfoModal && selectedAgent && (
+                    <AgentInfoModal
+                        agent={selectedAgent}
+                        onClose={() => {
+                            setShowInfoModal(false);
+                            setSelectedAgent(null);
+                        }}
+                    />
+                )}
+                {showIntegrationModal && selectedAgent && (
+                    <IntegrationCodeModal
+                        agent={selectedAgent}
+                        onClose={() => {
+                            setShowIntegrationModal(false);
+                            setSelectedAgent(null);
+                        }}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

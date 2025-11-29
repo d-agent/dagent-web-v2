@@ -35,7 +35,7 @@ export const Footer = () => (
             <div>
                 <h4 className="font-bold mb-4 text-white">Resources</h4>
                 <ul className="space-y-2 text-sm text-gray-500">
-                    <li><a href="#" className="hover:text-primary transition-colors">Documentation</a></li>
+                    <li><a href="https://github.com/d-agent" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">Documentation</a></li>
                     <li><a href="#" className="hover:text-primary transition-colors">Masumi Network</a></li>
                     <li><a href="#" className="hover:text-primary transition-colors">Community</a></li>
                     <li><a href="#" className="hover:text-primary transition-colors">Governance</a></li>

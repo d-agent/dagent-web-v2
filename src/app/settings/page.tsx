@@ -2,8 +2,12 @@
 
 import React from 'react';
 import { User, Edit, Bell, Layers, Wallet, ShieldCheck, Lock, Key, Monitor, Smartphone } from 'lucide-react';
+import { useWallet } from '@/contexts/WalletContext';
+import { DisconnectModal } from '@/components/DisconnectModal';
+import { AnimatePresence } from 'framer-motion';
 
 export default function SettingsPage() {
+    const { showDisconnectModal, setShowDisconnectModal, handleDisconnect } = useWallet();
     return (
         <div className="pt-32 pb-20 px-6 max-w-5xl mx-auto w-full min-h-screen">
             <h1 className="text-4xl font-bold mb-2">Account Settings</h1>
@@ -40,7 +44,12 @@ export default function SettingsPage() {
                                 <div className="flex items-center gap-3 bg-black/50 border border-white/10 rounded-lg p-3">
                                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                                     <span className="font-mono text-sm text-gray-300 flex-1">addr1q8...9sAd</span>
-                                    <button className="text-xs text-red-400 hover:text-red-300">Disconnect</button>
+                                    <button 
+                                        onClick={() => setShowDisconnectModal(true)}
+                                        className="text-xs text-red-400 hover:text-red-300"
+                                    >
+                                        Disconnect
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -135,6 +144,15 @@ export default function SettingsPage() {
                     </div>
                 </section>
             </div>
+
+            <AnimatePresence>
+                {showDisconnectModal && (
+                    <DisconnectModal
+                        onClose={() => setShowDisconnectModal(false)}
+                        onConfirm={handleDisconnect}
+                    />
+                )}
+            </AnimatePresence>
         </div>
     );
 }

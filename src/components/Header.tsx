@@ -16,11 +16,13 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useWallet } from '@/contexts/WalletContext';
+import { DisconnectModal } from '@/components/DisconnectModal';
+import { AnimatePresence } from 'framer-motion';
 
 export const Header = () => {
     const pathname = usePathname();
     const [showUserMenu, setShowUserMenu] = useState(false);
-    const { isWalletConnected, setIsWalletConnected } = useWallet();
+    const { isWalletConnected, showDisconnectModal, setShowDisconnectModal, handleDisconnect } = useWallet();
 
     // Hide header if wallet is not connected
     if (!isWalletConnected) {
@@ -98,8 +100,8 @@ export const Header = () => {
                             <div className="h-[1px] bg-white/5 mx-2 my-1" />
                             <button
                                 onClick={() => {
-                                    setIsWalletConnected(false);
                                     setShowUserMenu(false);
+                                    setShowDisconnectModal(true);
                                 }}
                                 className="w-full text-left px-4 py-3 text-sm text-red-400 hover:bg-red-500/10 flex items-center gap-2"
                             >
@@ -109,6 +111,15 @@ export const Header = () => {
                     )}
                 </div>
             </div>
+
+            <AnimatePresence>
+                {showDisconnectModal && (
+                    <DisconnectModal
+                        onClose={() => setShowDisconnectModal(false)}
+                        onConfirm={handleDisconnect}
+                    />
+                )}
+            </AnimatePresence>
         </header>
     );
 };

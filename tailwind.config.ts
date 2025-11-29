@@ -24,13 +24,23 @@ const config: Config = {
             },
             animation: {
                 'spin-slow': 'spin 10s linear infinite',
-                'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'pulse-slow': 'pulse-smooth 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                 'beam': 'beam 2s linear infinite',
             },
             keyframes: {
                 beam: {
-                    '0%': { transform: 'translateX(-100%)' },
-                    '100%': { transform: 'translateX(100%)' }
+                    '0%': { transform: 'translateX(-100%) translateZ(0)' },
+                    '100%': { transform: 'translateX(100%) translateZ(0)' }
+                },
+                'pulse-smooth': {
+                    '0%, 100%': { 
+                        opacity: '0.4',
+                        transform: 'scale(1) translateZ(0)'
+                    },
+                    '50%': { 
+                        opacity: '0.8',
+                        transform: 'scale(1.05) translateZ(0)'
+                    }
                 }
             }
         },

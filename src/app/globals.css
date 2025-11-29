@@ -12,6 +12,20 @@ body {
   color: #fff;
 }
 
+/* Performance optimizations for smoother animations */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* GPU acceleration hints */
+.animate-smooth {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -60,4 +74,15 @@ body {
 @keyframes slideInFromTop {
   from { transform: translateY(-10px) translateX(-50%); }
   to { transform: translateY(0) translateX(-50%); }
+}
+
+@keyframes pulse-smooth {
+  0%, 100% { 
+    opacity: 0.4;
+    transform: scale(1) translateZ(0);
+  }
+  50% { 
+    opacity: 0.8;
+    transform: scale(1.05) translateZ(0);
+  }
 }

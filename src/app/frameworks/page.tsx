@@ -88,9 +88,14 @@ export default function FrameworksPage() {
                             </ul>
                         </div>
                     </div>
-                    <button className="w-full bg-white text-black px-4 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm uppercase tracking-wider">
+                    <a 
+                        href="https://github.com/d-agent"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-white text-black px-4 py-4 rounded-xl font-bold hover:bg-gray-200 transition-all text-sm uppercase tracking-wider text-center block"
+                    >
                         Read Documentation
-                    </button>
+                    </a>
                 </div>
 
                 {/* Right: Code */}
