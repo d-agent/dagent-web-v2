@@ -1,0 +1,5 @@
+name = "dagent-web-v2"
+compatibility_date = "2025-11-29"
+
+[assets]
+directory = "./out"
