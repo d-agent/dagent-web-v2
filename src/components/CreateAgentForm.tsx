@@ -176,13 +176,21 @@ export default function CreateAgentForm({ onClose, onSuccess }: CreateAgentFormP
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 Framework Used
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.framework_used}
                 onChange={(e) => setFormData({ ...formData, framework_used: e.target.value })}
-                className="w-full px-3 py-2 bg-black/50 border border-white/10 rounded-lg text-white placeholder-gray-500 focus:border-primary focus:outline-none"
-                placeholder="LangChain, CrewAI, etc."
-              />
+                className="w-full px-3 py-2 bg-black/50 border border-white/10 rounded-lg text-white focus:border-primary focus:outline-none"
+              >
+                <option value="">Select Framework</option>
+                <option value="google_adk">Google ADK</option>
+                <option value="crew_ai">Crew AI</option>
+                <option value="langgraph">LangGraph</option>
+                <option value="openai">OpenAI</option>
+                <option value="autogen">AutoGen</option>
+                <option value="autogpt">AutoGPT</option>
+                <option value="semantic_kernel">Semantic Kernel</option>
+                <option value="openai_agents">OpenAI Agents</option>
+              </select>
             </div>
           </div>
 
