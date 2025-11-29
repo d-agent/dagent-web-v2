@@ -29,9 +29,9 @@ export default function AgentsPage() {
     const updateAgentMutation = useUpdateAgentMutation();
     const deleteAgentMutation = useDeleteAgentMutation();
 
-    // Filter Logic - Use API data if available, fallback to mock
+    // Filter Logic - Use API data if available, show empty if no data
     const filteredAgents = useMemo(() => {
-        const allAgents = apiAgents && apiAgents.length > 0 ? apiAgents : MOCK_AGENTS;
+        const allAgents = apiAgents?.data || [];
         let agents = subTab === 'DEPLOY' ? allAgents.filter(a => (a as any).owner?.startsWith('0x123') || (a as any).isActive) : allAgents;
 
         if (searchQuery) {
@@ -52,7 +52,9 @@ export default function AgentsPage() {
             }
             return 0;
         });
-    }, [apiAgents, subTab, searchQuery, sortBy]);
+    }, [apiAgents?.data, subTab, searchQuery, sortBy]);
+
+    const hasNoAgents = !isLoading && filteredAgents.length === 0;
 
     if (view === 'CREATE') {
         return (
@@ -197,6 +199,11 @@ export default function AgentsPage() {
                 <div className="flex justify-center items-center py-20">
                     <div className="text-gray-400">Loading agents...</div>
                 </div>
+            ) : hasNoAgents ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="text-gray-400 text-lg mb-2">No agents available</div>
+                    <div className="text-gray-500 text-sm">There are no agents to display at the moment.</div>
+                </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredAgents.map((agent) => (
@@ -276,13 +283,9 @@ export default function AgentsPage() {
                                 <div className="flex space-x-2">
                                     <button 
                                         onClick={() => {
-                                            updateAgentMutation.mutate({
-                                                id: agent.id,
-                                                data: { isActive: !(agent as any).isActive }
-                                            });
+                                            alert('Edit functionality is under development');
                                         }}
-                                        disabled={updateAgentMutation.isPending}
-                                        className="flex-1 py-2 bg-white/5 border border-white/10 text-white rounded-lg font-mono text-xs hover:bg-white/10 transition-colors flex items-center justify-center space-x-2 disabled:opacity-50"
+                                        className="flex-1 py-2 bg-white/5 border border-white/10 text-white rounded-lg font-mono text-xs hover:bg-white/10 transition-colors flex items-center justify-center space-x-2"
                                     >
                                         <Edit size={12} /> <span>Edit</span>
                                     </button>

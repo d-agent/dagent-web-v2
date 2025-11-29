@@ -26,7 +26,7 @@ export const useCreateAgentMutation = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: api.agents.createAgent,
+    mutationFn: (data: any) => api.agents.createAgent(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agents'] });
     },

@@ -64,7 +64,7 @@ class ApiSdk {
     );
   }
 
-  setTokens(accessToken: string, refreshToken?: string) {
+  setTokens(accessToken: string, refreshToken?: string, userId?: string) {
     Cookies.set('access_token', accessToken, { expires: 7 });
     localStorage.setItem('access_token', accessToken);
     
@@ -72,17 +72,28 @@ class ApiSdk {
       Cookies.set('refresh_token', refreshToken, { expires: 30 });
       localStorage.setItem('refresh_token', refreshToken);
     }
+    
+    if (userId) {
+      Cookies.set('user_id', userId, { expires: 7 });
+      localStorage.setItem('user_id', userId);
+    }
   }
 
   clearTokens() {
     Cookies.remove('access_token');
     Cookies.remove('refresh_token');
+    Cookies.remove('user_id');
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
+    localStorage.removeItem('user_id');
   }
 
   getAccessToken(): string | null {
     return Cookies.get('access_token') || localStorage.getItem('access_token');
+  }
+
+  getUserId(): string | null {
+    return Cookies.get('user_id') || localStorage.getItem('user_id');
   }
 }
 

@@ -1,25 +1,11 @@
 import { AxiosInstance } from 'axios';
-import { z } from 'zod';
-
-const AgentResponse = z.object({
-  message: z.string(),
-  data: z.any(),
-});
-
-const Agent = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  agentCost: z.string(),
-  deployedUrl: z.string(),
-  llmProvider: z.string(),
-  skills: z.array(z.string()),
-  isActive: z.boolean().optional(),
-  isPublic: z.boolean().optional(),
-});
 
 export class AgentModule {
-  constructor(private axios: AxiosInstance) {}
+  private axios: AxiosInstance;
+  
+  constructor(axios: AxiosInstance) {
+    this.axios = axios;
+  }
 
   async callAgent(requirementJson: any, message: string, apiKey?: string) {
     const headers = apiKey ? { 'x-api-key': apiKey } : {};
@@ -27,12 +13,12 @@ export class AgentModule {
       { requirement_json: requirementJson, message }, 
       { headers }
     );
-    return AgentResponse.parse(response);
+    return response;
   }
 
   async runAgent(id: string, message: string) {
     const response = await this.axios.post(`/dagent/${id}/run`, { message });
-    return AgentResponse.parse(response);
+    return response;
   }
 
   async createAgent(data: {
@@ -47,8 +33,13 @@ export class AgentModule {
     framework_used?: string;
     can_stream?: boolean;
   }) {
+    console.log('🤖 AgentModule: createAgent called with data:', data);
+    console.log('🤖 AgentModule: axios instance:', this.axios);
+    if (!this.axios) {
+      throw new Error('Axios instance is not initialized');
+    }
     const response = await this.axios.post('/dagent/create', data);
-    return Agent.parse(response);
+    return response;
   }
 
   async verifyAgent(deployedUrl: string, defaultAgentName?: string) {
@@ -63,14 +54,12 @@ export class AgentModule {
     console.log('🤖 AgentModule: getAllAgents called');
     const response = await this.axios.get('/dagent/all');
     console.log('🤖 AgentModule: Raw response received', response);
-    const parsed = z.array(Agent).parse(response);
-    console.log('🤖 AgentModule: Parsed agents', parsed);
-    return parsed;
+    return response;
   }
 
   async getAgent(id: string) {
     const response = await this.axios.get(`/dagent/${id}`);
-    return Agent.parse(response);
+    return response;
   }
 
   async updateAgent(id: string, data: Partial<{
@@ -80,7 +69,7 @@ export class AgentModule {
     isPublic: boolean;
   }>) {
     const response = await this.axios.put(`/dagent/${id}`, data);
-    return Agent.parse(response);
+    return response;
   }
 
   async deleteAgent(id: string) {

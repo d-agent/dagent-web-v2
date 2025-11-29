@@ -16,7 +16,8 @@ export default function ApiKeysPage() {
     const createApiKeyMutation = useCreateApiKeyMutation();
     const deleteApiKeyMutation = useDeleteApiKeyMutation();
     
-    const displayKeys = apiKeys && apiKeys.length > 0 ? apiKeys : MOCK_API_KEYS;
+    const displayKeys = apiKeys?.data || [];
+    const hasNoKeys = !isLoading && displayKeys.length === 0;
     
     const handleCreateKey = async () => {
         if (!keyName.trim()) return;
@@ -144,9 +145,14 @@ export default function ApiKeysPage() {
                         <div className="flex justify-center items-center py-20">
                             <div className="text-gray-400">Loading API keys...</div>
                         </div>
+                    ) : hasNoKeys ? (
+                        <div className="flex flex-col items-center justify-center py-20 text-center">
+                            <div className="text-gray-400 text-lg mb-2">No API keys available</div>
+                            <div className="text-gray-500 text-sm">Create your first API key to get started.</div>
+                        </div>
                     ) : (
                         <div className="space-y-3">
-                            {displayKeys.map(key => (
+                            {displayKeys.map((key: any) => (
                             <div key={key.id} className="bg-surface border border-white/10 rounded-xl p-6 flex flex-col md:flex-row items-center justify-between hover:border-white/20 transition-colors group w-full shadow-md">
                                 {/* Key Item content */}
                                 <div className="flex items-center gap-6 w-full md:w-auto">
