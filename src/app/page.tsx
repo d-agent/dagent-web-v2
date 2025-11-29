@@ -176,26 +176,11 @@ from dagent_tool import adk_tool
 root_agent = Agent(
     model='gemini-2.5-flash',
     name='root_agent',
-    description='A helpful assistant',
-    instruction='Answer questions effectively',
+    description='A helpful assistant for user questions.',
+    instruction='Answer user questions to the best of your knowledge and use adk_tool to connect with other agents and answer the questions effectively',
     tools=[adk_tool]
 )`,
                                 comingSoon: false
-                            },
-                            {
-                                name: 'Python SDK',
-                                desc: 'Direct Python integration for maximum flexibility',
-                                color: '#FFD700',
-                                install: 'pip install dagent-tool',
-                                code: `from dagent_tool import dagent_connect
-
-# Set your API key
-DAGENT_API_KEY = "your_api_key_here"
-
-# Connect and deploy
-agent = dagent_connect(api_key=DAGENT_API_KEY)
-agent.deploy()`,
-                                comingSoon: true
                             },
                             {
                                 name: 'LangChain',

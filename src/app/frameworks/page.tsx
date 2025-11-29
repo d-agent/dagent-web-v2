@@ -3,42 +3,42 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Box, Copy, BookOpen, Github, ArrowRight, Zap, Shield, Layers, Globe, Terminal } from 'lucide-react';
-import { ADK_SNIPPET, LANGGRAPH_SNIPPET, PYTHON_SDK_SNIPPET, CREWAI_SNIPPET } from '@/lib/constants';
+import { GOOGLE_ADK_SNIPPET, LANGGRAPH_SNIPPET, CREWAI_SNIPPET } from '@/lib/constants';
 
-type FrameworkType = 'ADK' | 'LangGraph' | 'Python SDK' | 'CrewAI';
+type FrameworkType = 'Google ADK' | 'LangGraph' | 'CrewAI';
 
 export default function FrameworksPage() {
-    const [selectedFramework, setSelectedFramework] = useState<FrameworkType>('ADK');
+    const [selectedFramework, setSelectedFramework] = useState<FrameworkType>('Google ADK');
     const [terminalLines, setTerminalLines] = useState<string[]>([]);
 
     const getSnippet = (framework: FrameworkType) => {
         switch (framework) {
-            case 'ADK':
-                return ADK_SNIPPET;
+            case 'Google ADK':
+                return GOOGLE_ADK_SNIPPET;
             case 'LangGraph':
                 return LANGGRAPH_SNIPPET;
-            case 'Python SDK':
-                return PYTHON_SDK_SNIPPET;
             case 'CrewAI':
                 return CREWAI_SNIPPET;
             default:
-                return ADK_SNIPPET;
+                return GOOGLE_ADK_SNIPPET;
         }
     };
 
     const getFileName = (framework: FrameworkType) => {
         switch (framework) {
-            case 'ADK':
-                return 'src/main.ts';
+            case 'Google ADK':
+                return 'src/agent.py';
             case 'LangGraph':
                 return 'src/graph.ts';
-            case 'Python SDK':
-                return 'src/agent.py';
             case 'CrewAI':
                 return 'src/crew.py';
             default:
-                return 'src/main.ts';
+                return 'src/agent.py';
         }
+    };
+
+    const isComingSoon = (framework: FrameworkType) => {
+        return framework === 'LangGraph' || framework === 'CrewAI';
     };
 
     useEffect(() => {
@@ -61,7 +61,7 @@ export default function FrameworksPage() {
         });
     }, [selectedFramework]);
 
-    const frameworks: FrameworkType[] = ['ADK', 'Python SDK', 'LangGraph', 'CrewAI'];
+    const frameworks: FrameworkType[] = ['Google ADK', 'LangGraph', 'CrewAI'];
 
     return (
         <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col min-h-screen">
@@ -77,13 +77,21 @@ export default function FrameworksPage() {
                     {frameworks.map((fw) => (
                         <button
                             key={fw}
-                            onClick={() => setSelectedFramework(fw)}
-                            className={`px-4 py-2 rounded-md font-mono text-xs transition-all ${selectedFramework === fw
+                            onClick={() => !isComingSoon(fw) && setSelectedFramework(fw)}
+                            disabled={isComingSoon(fw)}
+                            className={`px-4 py-2 rounded-md font-mono text-xs transition-all relative ${selectedFramework === fw
                                 ? 'bg-white/10 text-white shadow-sm'
-                                : 'text-gray-500 hover:text-gray-300'
+                                : isComingSoon(fw)
+                                    ? 'text-gray-600 cursor-not-allowed'
+                                    : 'text-gray-500 hover:text-gray-300'
                                 }`}
                         >
                             {fw}
+                            {isComingSoon(fw) && (
+                                <span className="ml-2 px-2 py-0.5 bg-yellow-500/20 text-yellow-500 text-[10px] rounded-full border border-yellow-500/30">
+                                    Soon
+                                </span>
+                            )}
                         </button>
                     ))}
                 </div>
@@ -104,10 +112,10 @@ export default function FrameworksPage() {
                         <div className="space-y-4">
                             <div className="bg-[#050505] border border-white/10 rounded-lg p-5 flex items-center justify-between group">
                                 <code className="text-gray-300 font-mono text-sm">
-                                    <span className="text-secondary">$</span> {selectedFramework === 'ADK' || selectedFramework === 'LangGraph'
-                                        ? `bun add @dagent/${selectedFramework.toLowerCase()}`
-                                        : selectedFramework === 'Python SDK'
-                                            ? 'pip install dagent-tool'
+                                    <span className="text-secondary">$</span> {selectedFramework === 'LangGraph'
+                                        ? `bun add @dagent/langgraph`
+                                        : selectedFramework === 'Google ADK'
+                                            ? 'pip install google-adk dagent-tool'
                                             : 'pip install crewai dagent-tool'}
                                 </code>
                                 <button className="text-gray-500 hover:text-white transition-colors">

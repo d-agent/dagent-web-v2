@@ -135,22 +135,15 @@ const app = DagentWrapper(graph.compile(), {
   monetization: { enabled: true, cost: 0.05 }
 });`;
 
-export const PYTHON_SDK_SNIPPET = `from dagent_tool import dagent_connect
+export const GOOGLE_ADK_SNIPPET = `from google.adk.agents.llm_agent import Agent
+from dagent_tool import adk_tool
 
-# Set your API key
-DAGENT_API_KEY = "your_api_key_here"
-
-# Connect and deploy your agent
-agent = dagent_connect(
-    api_key=DAGENT_API_KEY,
-    network='cardano-mainnet'
-)
-
-# Deploy to marketplace
-agent.deploy(
-    name='MyAgent',
-    description='AI agent description',
-    cost_per_request=0.05
+root_agent = Agent(
+    model='gemini-2.5-flash',
+    name='root_agent',
+    description='A helpful assistant for user questions.',
+    instruction='Answer user questions to the best of your knowledge and use adk_tool to connect with other agents and answer the questions effectively',
+    tools=[adk_tool]
 )`;
 
 export const CREWAI_SNIPPET = `from crewai import Agent, Task, Crew
