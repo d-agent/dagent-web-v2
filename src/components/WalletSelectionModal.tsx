@@ -19,6 +19,8 @@ interface CardanoWallet {
     icon: string;
     downloadUrl: string;
     isInstalled: boolean;
+    alternativeIds: string[];
+    detectedId?: string;
 }
 
 export const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({
@@ -41,12 +43,12 @@ export const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({
     }, []);
 
     const CARDANO_WALLETS_INFO = [
-        { name: 'nami', displayName: 'Nami', icon: '', downloadUrl: 'https://www.namiwallet.io/' },
-        { name: 'eternl', displayName: 'Eternl', icon: '', downloadUrl: 'https://eternl.io/' },
-        { name: 'flint', displayName: 'Flint', icon: '', downloadUrl: 'https://flint-wallet.com/' },
-        { name: 'typhoncip30', displayName: 'Typhon', icon: '', downloadUrl: 'https://typhonwallet.io/' },
-        { name: 'gerowallet', displayName: 'Gero', icon: '', downloadUrl: 'https://gerowallet.io/' },
-        { name: 'lace', displayName: 'Lace', icon: '', downloadUrl: 'https://www.lace.io/' },
+        { name: 'nami', displayName: 'Nami', icon: '', downloadUrl: 'https://www.namiwallet.io/', alternativeIds: [] },
+        { name: 'eternl', displayName: 'Eternl', icon: '', downloadUrl: 'https://eternl.io/', alternativeIds: ['ccvaultio'] },
+        { name: 'flint', displayName: 'Flint', icon: '', downloadUrl: 'https://flint-wallet.com/', alternativeIds: [] },
+        { name: 'typhoncip30', displayName: 'Typhon', icon: '', downloadUrl: 'https://typhonwallet.io/', alternativeIds: ['typhon'] },
+        { name: 'gerowallet', displayName: 'Gero', icon: '', downloadUrl: 'https://gerowallet.io/', alternativeIds: [] },
+        { name: 'lace', displayName: 'Lace', icon: '', downloadUrl: 'https://www.lace.io/', alternativeIds: [] },
     ];
 
     useEffect(() => {
@@ -76,11 +78,21 @@ export const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({
             console.log('✅ Detected wallet IDs:', installedWalletIds);
 
             const wallets: CardanoWallet[] = CARDANO_WALLETS_INFO.map(walletInfo => {
-                const isInstalled = installedWalletIds.includes(walletInfo.name);
-                const installedWallet = installedWalletObjects.find((w: any) => w.id === walletInfo.name);
+                const allPossibleIds = [walletInfo.name, ...walletInfo.alternativeIds];
+                const matchingId = allPossibleIds.find(id => installedWalletIds.includes(id));
+                const isInstalled = !!matchingId;
+
+                const installedWallet = installedWalletObjects.find((w: any) =>
+                    allPossibleIds.includes(w.id)
+                );
                 const icon = installedWallet?.icon || `https://ui-avatars.com/api/?name=${walletInfo.displayName}&background=random`;
 
-                return { ...walletInfo, icon, isInstalled };
+                return {
+                    ...walletInfo,
+                    icon,
+                    isInstalled,
+                    detectedId: matchingId || walletInfo.name
+                };
             });
 
             setAvailableWallets(wallets);
@@ -103,15 +115,51 @@ export const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({
         onConnecting?.();
 
         try {
+            const walletInfo = availableWallets.find(w => w.name === walletName);
+            const walletIdToConnect = walletInfo?.detectedId || walletName;
+
+            console.log(`🔌 Connecting to wallet: ${walletInfo?.displayName} (ID: ${walletIdToConnect})`);
+
             setCurrentStep('Connecting to wallet...');
-            const wallet = await BrowserWallet.enable(walletName as any);
+            const wallet = await BrowserWallet.enable(walletIdToConnect as any);
 
             setCurrentStep('Getting wallet address...');
-            const usedAddresses = await wallet.getUsedAddresses();
-            const userAddress = usedAddresses[0];
+
+            let userAddress: string | undefined;
+
+            try {
+                const usedAddresses = await wallet.getUsedAddresses();
+                if (usedAddresses && usedAddresses.length > 0) {
+                    userAddress = usedAddresses[0];
+                    console.log('✅ Got address from getUsedAddresses');
+                }
+            } catch (e) {
+                console.log('⚠️ getUsedAddresses failed, trying alternatives...');
+            }
 
             if (!userAddress) {
-                throw new Error('No address found in wallet');
+                try {
+                    const unusedAddresses = await wallet.getUnusedAddresses();
+                    if (unusedAddresses && unusedAddresses.length > 0) {
+                        userAddress = unusedAddresses[0];
+                        console.log('✅ Got address from getUnusedAddresses');
+                    }
+                } catch (e) {
+                    console.log('⚠️ getUnusedAddresses failed');
+                }
+            }
+
+            if (!userAddress) {
+                try {
+                    userAddress = await wallet.getChangeAddress();
+                    console.log('✅ Got address from getChangeAddress');
+                } catch (e) {
+                    console.log('⚠️ getChangeAddress failed');
+                }
+            }
+
+            if (!userAddress) {
+                throw new Error('No address found in wallet. Please make sure your wallet has at least one address.');
             }
 
             console.log('User address:', userAddress);
@@ -161,6 +209,8 @@ export const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({
 
             if (error.message?.includes('User declined')) {
                 errorMessage = 'Connection request was declined';
+            } else if (error.message?.includes('No address found')) {
+                errorMessage = 'No address found in wallet. Please make sure your wallet has at least one address.';
             } else if (error.code === 'ERR_NETWORK' || error.message?.includes('Network Error')) {
                 errorMessage = 'Cannot connect to authentication server. Check if backend is running.';
             } else if (error.response?.status === 404) {
