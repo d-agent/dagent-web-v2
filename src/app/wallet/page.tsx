@@ -4,6 +4,9 @@ import React, { useState } from 'react';
 import { TrendingUp, Layers, Zap } from 'lucide-react';
 import { MOCK_STAKES, MOCK_TRANSACTIONS } from '@/lib/constants';
 import { WalletStats } from '@/lib/types';
+import { StakeModal } from '@/components/StakeModal';
+import { WithdrawModal } from '@/components/WithdrawModal';
+import { SuccessModal } from '@/components/SuccessModal';
 
 export default function WalletPage() {
     const [walletStats, setWalletStats] = useState<WalletStats>({
@@ -12,6 +15,37 @@ export default function WalletPage() {
         earnings: 342.10,
         apy: 12.5
     });
+
+    const [showStakeModal, setShowStakeModal] = useState(false);
+    const [showWithdrawModal, setShowWithdrawModal] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [successType, setSuccessType] = useState<'stake' | 'withdraw'>('stake');
+    const [successAmount, setSuccessAmount] = useState(0);
+
+    const handleStakeSuccess = (amount: number) => {
+        setWalletStats(prev => ({
+            ...prev,
+            balance: prev.balance - amount,
+            staked: prev.staked + amount
+        }));
+        setShowStakeModal(false);
+        setSuccessType('stake');
+        setSuccessAmount(amount);
+        setShowSuccessModal(true);
+    };
+
+    const handleWithdrawSuccess = (amount: number) => {
+        setWalletStats(prev => ({
+            ...prev,
+            balance: prev.balance + amount + prev.earnings,
+            staked: prev.staked - amount,
+            earnings: 0
+        }));
+        setShowWithdrawModal(false);
+        setSuccessType('withdraw');
+        setSuccessAmount(amount + walletStats.earnings);
+        setShowSuccessModal(true);
+    };
 
     return (
         <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto w-full min-h-screen">
@@ -41,7 +75,7 @@ export default function WalletPage() {
                     <div className="relative z-10">
                         <div className="text-sm text-gray-400 mb-2">TOTAL BALANCE</div>
                         <div className="text-6xl font-bold font-mono tracking-tighter text-white">
-                            {walletStats.balance.toLocaleString()} <span className="text-3xl text-primary">DAG</span>
+                            {walletStats.balance.toLocaleString()} <span className="text-3xl text-primary">ADA</span>
                         </div>
                         <div className="flex items-center gap-4 text-green-400 text-sm mt-4">
                             <span className="bg-green-500/10 px-2 py-1 rounded border border-green-500/20 flex items-center gap-1">
@@ -52,11 +86,17 @@ export default function WalletPage() {
                     </div>
 
                     <div className="relative z-10 flex gap-4 mt-4">
-                        <button className="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors shadow-lg">
+                        <button
+                            onClick={() => setShowStakeModal(true)}
+                            className="flex-1 bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-colors shadow-lg"
+                        >
                             Stake Tokens
                         </button>
-                        <button className="flex-1 bg-white/5 text-white py-3 rounded-xl font-bold text-sm hover:bg-white/10 transition-colors border border-white/10 backdrop-blur-md">
-                            Transfer
+                        <button
+                            onClick={() => setShowWithdrawModal(true)}
+                            className="flex-1 bg-white/5 text-white py-3 rounded-xl font-bold text-sm hover:bg-white/10 transition-colors border border-white/10 backdrop-blur-md"
+                        >
+                            Withdraw
                         </button>
                     </div>
                 </div>
@@ -70,18 +110,26 @@ export default function WalletPage() {
                         <div className="space-y-6">
                             <div>
                                 <div className="text-gray-500 text-xs mb-1">TOTAL STAKED</div>
-                                <div className="text-2xl font-mono font-bold">{walletStats.staked.toLocaleString()} DAG</div>
+                                <div className="text-2xl font-mono font-bold">{walletStats.staked.toLocaleString()} ADA</div>
                                 <div className="w-full bg-white/10 h-1 mt-2 rounded-full overflow-hidden">
                                     <div className="bg-secondary w-[70%] h-full" />
                                 </div>
                             </div>
                             <div>
                                 <div className="text-gray-500 text-xs mb-1">UNCLAIMED REWARDS</div>
-                                <div className="text-2xl font-mono font-bold text-primary">{walletStats.earnings.toLocaleString()} DAG</div>
+                                <div className="text-2xl font-mono font-bold text-primary">{walletStats.earnings.toLocaleString()} ADA</div>
                             </div>
                         </div>
                     </div>
-                    <button className="w-full py-3 bg-secondary/10 border border-secondary/30 text-secondary rounded-xl font-bold text-sm hover:bg-secondary/20 transition-colors">
+                    <button
+                        onClick={() => {
+                            setWalletStats(prev => ({ ...prev, balance: prev.balance + prev.earnings, earnings: 0 }));
+                            setSuccessType('withdraw');
+                            setSuccessAmount(walletStats.earnings);
+                            setShowSuccessModal(true);
+                        }}
+                        className="w-full py-3 bg-secondary/10 border border-secondary/30 text-secondary rounded-xl font-bold text-sm hover:bg-secondary/20 transition-colors"
+                    >
                         Claim Rewards
                     </button>
                 </div>
@@ -106,7 +154,7 @@ export default function WalletPage() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="font-mono font-bold">{stake.amount.toLocaleString()} DAG</div>
+                                    <div className="font-mono font-bold">{stake.amount.toLocaleString()} ADA</div>
                                     <div className="text-xs text-gray-500">Earned: {stake.earned}</div>
                                 </div>
                             </div>
@@ -142,6 +190,31 @@ export default function WalletPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            <StakeModal
+                isOpen={showStakeModal}
+                onClose={() => setShowStakeModal(false)}
+                onSuccess={handleStakeSuccess}
+                availableBalance={walletStats.balance}
+                agentName="AlphaTrader V2"
+            />
+
+            <WithdrawModal
+                isOpen={showWithdrawModal}
+                onClose={() => setShowWithdrawModal(false)}
+                onSuccess={handleWithdrawSuccess}
+                stakedAmount={walletStats.staked}
+                agentName="AlphaTrader V2"
+                unclaimedRewards={walletStats.earnings}
+            />
+
+            <SuccessModal
+                isOpen={showSuccessModal}
+                onClose={() => setShowSuccessModal(false)}
+                type={successType}
+                amount={successAmount}
+            />
         </div>
     );
 }
