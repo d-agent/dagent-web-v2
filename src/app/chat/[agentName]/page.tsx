@@ -23,9 +23,9 @@ export default function ChatPage() {
     const runAgentMutation = useRunAgentMutation();
     
     // Use API agents if available, fallback to mock
-    const allAgents = apiAgents && apiAgents.length > 0 ? apiAgents : MOCK_AGENTS;
+    const allAgents = apiAgents?.data && apiAgents.data.length > 0 ? apiAgents.data : MOCK_AGENTS;
     
-    const agent = allAgents.find(a => 
+    const agent = allAgents.find((a: any) => 
         a.name.toLowerCase().replace(/\s+/g, '-') === agentName
     ) || allAgents[0];
 

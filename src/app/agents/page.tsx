@@ -38,7 +38,7 @@ export default function AgentsPage() {
             agents = agents.filter((a: any) => a.name.toLowerCase().includes(searchQuery.toLowerCase()) || a.description.toLowerCase().includes(searchQuery.toLowerCase()));
         }
 
-        return agents.sort((a, b) => {
+        return agents.sort((a: any, b: any) => {
             if (sortBy === 'NAME') return a.name.localeCompare(b.name);
             if (sortBy === 'COST') {
                 const costA = (a as any).costPerRequest || parseFloat((a as any).agentCost || '0');
@@ -206,7 +206,7 @@ export default function AgentsPage() {
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredAgents.map((agent) => (
+                    {filteredAgents.map((agent: any) => (
                     <div key={agent.id} className="group relative bg-surface/50 backdrop-blur-md border border-white/5 rounded-2xl p-6 overflow-hidden hover:border-white/20 transition-all flex flex-col h-full hover:shadow-2xl hover:shadow-primary/5">
 
                         <div className="relative z-10 flex-1">

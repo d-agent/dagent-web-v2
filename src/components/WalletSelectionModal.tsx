@@ -122,7 +122,7 @@ export const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({
             setCurrentStep('Requesting authentication nonce...');
 
             const nonceResponse = await getNonceMutation.mutateAsync(userAddress);
-            const nonce = nonceResponse.nonce;
+            const nonce = (nonceResponse as any).nonce;
             console.log('Nonce received:', nonce);
 
             setCurrentStep('Please sign the message in your wallet...');
