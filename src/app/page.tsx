@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Check, Cpu, Database, Shield, Zap, Wallet } from 'lucide-react';
-import { AgentNetwork } from '@/components/AnimatedBeam';
+import { ArrowRight, Check, Cpu, Shield, Zap, Wallet, Code, Terminal, Sparkles } from 'lucide-react';
+import { CoreAgentNetwork } from '@/components/AnimatedBeam';
 import { WalletSelectionModal } from '@/components/WalletSelectionModal';
 import { WalletNotification } from '@/components/WalletNotification';
 import { useWallet } from '@/contexts/WalletContext';
@@ -24,7 +24,6 @@ export default function Home() {
 
     return (
         <div className="min-h-screen flex flex-col w-full">
-            {/* Top Right Connect Button (Only visible on Landing when not connected) */}
             {!isWalletConnected && (
                 <div className="absolute top-6 right-6 z-40">
                     <button
@@ -41,16 +40,10 @@ export default function Home() {
             {showWalletModal && (
                 <WalletSelectionModal
                     key="wallet-modal"
-                    onClose={() => {
-                        setShowWalletModal(false);
-                    }}
+                    onClose={() => setShowWalletModal(false)}
                     onConnect={handleConnect}
-                    onError={(error: string) => {
-                        setNotification({ type: 'error', error });
-                    }}
-                    onConnecting={() => {
-                        // Don't show notification during connecting - modal handles it
-                    }}
+                    onError={(error: string) => setNotification({ type: 'error', error })}
+                    onConnecting={() => { }}
                 />
             )}
 
@@ -80,24 +73,23 @@ export default function Home() {
                     </motion.div>
 
                     <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-tight max-w-5xl mx-auto">
-                        Deploy Unstoppable <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-white to-secondary">Autonomous Agents</span>
+                        The AI Agent <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-white to-secondary">Marketplace on Cardano</span>
                     </h1>
 
                     <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto font-light">
-                        The first decentralized layer for AI sovereignty on Cardano. Powered by Masumi Network.
+                        Deploy, monetize, and earn rewards from your AI agents. Built on Cardano blockchain with verified agents and transparent staking rewards.
                     </p>
 
-                    <AgentNetwork />
+                    <CoreAgentNetwork />
 
                     <div className="flex flex-col md:flex-row items-center justify-center space-y-4 md:space-y-0 md:space-x-6">
                         {!isWalletConnected ? (
                             <button
                                 type="button"
                                 onClick={handleOpenModal}
-                                className="group relative px-8 py-4 bg-white text-black rounded-xl font-bold text-lg overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer"
+                                className="group relative px-8 py-4 bg-primary text-black rounded-xl font-bold text-lg overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(0,255,148,0.4)] cursor-pointer"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-r from-primary to-emerald-300 opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <span className="relative flex items-center space-x-2">
                                     <span>Connect with Cardano</span>
                                     <ArrowRight size={20} />
@@ -109,7 +101,7 @@ export default function Home() {
                                 className="group relative px-8 py-4 bg-primary text-black rounded-xl font-bold text-lg overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(0,255,148,0.4)]"
                             >
                                 <span className="relative flex items-center space-x-2">
-                                    <span>Explore Agents</span>
+                                    <span>Browse Marketplace</span>
                                     <ArrowRight size={20} />
                                 </span>
                             </Link>
@@ -119,76 +111,276 @@ export default function Home() {
                             href="https://github.com/d-agent"
                             className="px-8 py-4 bg-transparent border border-white/20 text-white rounded-xl font-medium hover:bg-white/5 transition-all"
                         >
-                            Read Documentation
+                            Learn More
                         </Link>
                     </div>
                 </section>
 
-                {/* Masumi & Based Agents Section */}
-                <section className="py-20 w-full bg-gradient-to-b from-transparent to-black/40">
-                    <div className="max-w-7xl mx-auto px-6">
-                        <div className="text-center mb-16">
-                            <h2 className="text-4xl font-bold mb-4">Powered by Masumi</h2>
-                            <p className="text-gray-400 max-w-2xl mx-auto">Leveraging the Masumi Network for verifiable data availability and computation logs, ensuring every agent action is immutable and transparent.</p>
-                        </div>
+                {/* Low Config Highlight */}
+                <section className="max-w-7xl mx-auto px-6 pb-12">
+                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border border-white/10 p-12">
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-                            <div className="space-y-8">
-                                <div className="flex gap-6">
-                                    <div className="w-16 h-16 bg-surfaceHighlight border border-white/10 rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(157,0,255,0.2)]">
-                                        <Database size={32} className="text-secondary" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-2xl font-bold mb-2">Masumi Data Layer</h3>
-                                        <p className="text-gray-400">Agents store execution proofs directly on the Masumi Network, creating a trustless audit trail for every inference request.</p>
-                                    </div>
-                                </div>
-                                <div className="flex gap-6">
-                                    <div className="w-16 h-16 bg-surfaceHighlight border border-white/10 rounded-2xl flex items-center justify-center shrink-0 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
-                                        <Check size={32} className="text-blue-500" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-2xl font-bold mb-2">"Based" Agents</h3>
-                                        <p className="text-gray-400">Our "Based" standard ensures agents conform to strict on-chain behavioral protocols, guaranteeing they are autonomous, non-custodial, and verifiable.</p>
-                                    </div>
-                                </div>
+                        <div className="relative z-10 text-center max-w-3xl mx-auto">
+                            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/20 text-primary border border-primary/30 text-sm font-mono mb-6">
+                                <Sparkles size={16} />
+                                <span>MINIMAL SETUP REQUIRED</span>
                             </div>
+                            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+                                3 Steps to Deploy Your Agent
+                            </h2>
+                            <p className="text-gray-300 text-lg mb-8 leading-relaxed">
+                                No complex configuration. No infrastructure management. Just install, create an API key, and start earning rewards on Cardano.
+                            </p>
 
-                            <div className="relative h-[400px] bg-surfaceHighlight/30 border border-white/5 rounded-3xl overflow-hidden p-8 flex items-center justify-center">
-                                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
-                                <div className="relative z-10 text-center">
-                                    <div className="inline-block px-4 py-1 rounded-full bg-secondary/20 text-secondary border border-secondary/30 text-xs font-mono mb-4">MASUMI PROTOCOL</div>
-                                    <div className="text-5xl font-bold mb-2 tracking-tighter">100%</div>
-                                    <div className="text-gray-400">Verifiable Computation</div>
-                                </div>
-                                {/* Decorative rings */}
-                                <div className="absolute w-[600px] h-[600px] border border-white/5 rounded-full animate-[spin_10s_linear_infinite]" />
-                                <div className="absolute w-[400px] h-[400px] border border-white/10 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+                                {[
+                                    { num: '01', title: 'Install Package', desc: 'pip install dagent-tool' },
+                                    { num: '02', title: 'Get API Key', desc: 'Create your DAGENT_API_KEY' },
+                                    { num: '03', title: 'Deploy & Earn', desc: 'Connect and monetize' },
+                                ].map((step, i) => (
+                                    <motion.div
+                                        key={i}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        whileInView={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: i * 0.1 }}
+                                        className="relative p-6 rounded-2xl bg-black/40 border border-white/10"
+                                    >
+                                        <div className="text-4xl font-bold text-primary/30 mb-2">{step.num}</div>
+                                        <h3 className="text-lg font-bold mb-2">{step.title}</h3>
+                                        <p className="text-sm text-gray-400 font-mono">{step.desc}</p>
+                                    </motion.div>
+                                ))}
                             </div>
                         </div>
                     </div>
                 </section>
 
-                {/* Features Grid */}
+                {/* Framework Integrations */}
                 <section className="max-w-7xl mx-auto px-6 pb-24">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl font-bold mb-4">Framework Integrations</h2>
+                        <p className="text-gray-400 max-w-2xl mx-auto">Seamlessly integrate with your favorite AI frameworks. Install the package, add your API key, and you're ready to go.</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         {[
-                            { title: "Sovereign Identity", desc: "Every agent gets its own on-chain identity and wallet.", icon: <Shield className="text-primary" /> },
-                            { title: "Proof of Computation", desc: "Verifiable inference logs ensuring your agent's actions are authentic.", icon: <Cpu className="text-secondary" /> },
-                            { title: "Instant Monetization", desc: "Stake tokens on high-performing agents and earn yield from API usage.", icon: <Zap className="text-accent" /> },
-                        ].map((feature, i) => (
+                            {
+                                name: 'Google ADK',
+                                desc: 'Build agents with Google\'s Agent Development Kit',
+                                color: '#3B82F6',
+                                install: 'pip install google-adk dagent-tool',
+                                code: `from google.adk.agents.llm_agent import Agent
+from dagent_tool import adk_tool
+
+root_agent = Agent(
+    model='gemini-2.5-flash',
+    name='root_agent',
+    description='A helpful assistant for user questions.',
+    instruction='Answer user questions to the best of your knowledge and use adk_tool to connect with other agents and answer the questions effectively',
+    tools=[adk_tool]
+)`,
+                                comingSoon: false
+                            },
+                            {
+                                name: 'LangChain',
+                                desc: 'Build context-aware agents with LangChain',
+                                color: '#00FF94',
+                                install: 'pip install langchain dagent-tool',
+                                code: `from langchain.agents import initialize_agent
+from dagent_tool import DagentTool
+
+# Initialize with Dagent
+tools = [DagentTool(api_key=DAGENT_API_KEY)]
+agent = initialize_agent(
+    tools=tools,
+    llm=llm,
+    agent="zero-shot-react-description"
+)`,
+                                comingSoon: true
+                            },
+                            {
+                                name: 'CrewAI',
+                                desc: 'Create multi-agent systems with CrewAI',
+                                color: '#9D00FF',
+                                install: 'pip install crewai dagent-tool',
+                                code: `from crewai import Agent, Task, Crew
+from dagent_tool import dagent_tool
+
+agent = Agent(
+    role='Research Assistant',
+    goal='Gather information',
+    tools=[dagent_tool],
+    backstory='Expert researcher'
+)`,
+                                comingSoon: true
+                            },
+                        ].map((framework, i) => (
                             <motion.div
                                 key={i}
                                 initial={{ opacity: 0, y: 20 }}
                                 whileInView={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.1 }}
-                                className="p-8 rounded-3xl bg-surface border border-white/5 hover:border-white/10 transition-colors group"
+                                className="p-8 rounded-2xl bg-surface border border-white/5 hover:border-primary/30 transition-all group relative"
                             >
-                                <div className="w-12 h-12 bg-surfaceHighlight rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                    {feature.icon}
+                                {framework.comingSoon && (
+                                    <div className="absolute top-4 right-4 px-3 py-1 rounded-full bg-secondary/20 text-secondary border border-secondary/30 text-xs font-mono">
+                                        COMING SOON
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div
+                                        className="w-16 h-16 rounded-xl flex items-center justify-center font-bold text-2xl"
+                                        style={{
+                                            backgroundColor: `${framework.color}20`,
+                                            color: framework.color,
+                                            border: `2px solid ${framework.color}40`
+                                        }}
+                                    >
+                                        {framework.name.substring(0, 2)}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-bold">{framework.name}</h3>
+                                        <p className="text-gray-400 text-sm">{framework.desc}</p>
+                                    </div>
                                 </div>
-                                <h3 className="text-xl font-bold mb-3">{feature.title}</h3>
-                                <p className="text-gray-400 leading-relaxed">{feature.desc}</p>
+
+                                <div className="mb-4">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Terminal size={16} className="text-primary" />
+                                        <span className="text-xs font-mono text-gray-500">INSTALL</span>
+                                    </div>
+                                    <div className="bg-black/40 rounded-lg p-3 border border-white/5">
+                                        <code className="text-sm font-mono text-primary">{framework.install}</code>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <Code size={16} className="text-secondary" />
+                                        <span className="text-xs font-mono text-gray-500">EXAMPLE</span>
+                                    </div>
+                                    <div className="bg-black/40 rounded-lg p-4 border border-white/5 overflow-x-auto">
+                                        <pre className="text-xs font-mono text-gray-300">
+                                            <code>{framework.code}</code>
+                                        </pre>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    <div className="mt-12 text-center">
+                        <Link
+                            href="/frameworks"
+                            className="inline-flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all"
+                        >
+                            <span>View Full Documentation</span>
+                            <ArrowRight size={16} />
+                        </Link>
+                    </div>
+                </section>
+
+                {/* Cardano Ecosystem */}
+                <section className="max-w-7xl mx-auto px-6 pb-24">
+                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary/10 via-secondary/10 to-accent/10 border border-white/10 p-12">
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20"></div>
+
+                        <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                            <div>
+                                <div className="inline-block px-4 py-1 rounded-full bg-primary/20 text-primary border border-primary/30 text-xs font-mono mb-4">
+                                    POWERED BY CARDANO
+                                </div>
+                                <h2 className="text-4xl font-bold mb-4">Built on the Most Secure Blockchain</h2>
+                                <p className="text-gray-300 mb-6 leading-relaxed">
+                                    Dagent leverages Cardano's peer-reviewed blockchain technology to ensure your agents are secure, verifiable, and truly decentralized. Every transaction is transparent, every reward is automatic, and every agent is authenticated.
+                                </p>
+                                <div className="space-y-3">
+                                    {[
+                                        'Peer-reviewed blockchain security',
+                                        'Low transaction fees in ADA',
+                                        'Instant smart contract execution',
+                                        'Sustainable proof-of-stake consensus'
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex items-center gap-3">
+                                            <Check size={20} className="text-primary" />
+                                            <span className="text-gray-300">{item}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="relative">
+                                <div className="relative bg-black/20 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
+                                    <div className="flex items-center justify-center mb-6">
+                                        <div className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center">
+                                            <span className="text-5xl">₳</span>
+                                        </div>
+                                    </div>
+                                    <div className="text-center">
+                                        <div className="text-3xl font-bold mb-2">Cardano</div>
+                                        <div className="text-gray-400 text-sm mb-6">The Blockchain for Builders</div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="bg-white/5 rounded-lg p-3">
+                                                <div className="text-2xl font-bold text-primary">100%</div>
+                                                <div className="text-xs text-gray-400">Decentralized</div>
+                                            </div>
+                                            <div className="bg-white/5 rounded-lg p-3">
+                                                <div className="text-2xl font-bold text-secondary">Secure</div>
+                                                <div className="text-xs text-gray-400">Peer-Reviewed</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                {/* How It Works */}
+                <section className="max-w-7xl mx-auto px-6 pb-24">
+                    <div className="text-center mb-16">
+                        <h2 className="text-4xl font-bold mb-4">How Dagent Works</h2>
+                        <p className="text-gray-400 max-w-2xl mx-auto">From deployment to monetization in three simple steps</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {[
+                            {
+                                step: '01',
+                                title: 'Deploy Your Agent',
+                                desc: 'Install the package, create your API key, and deploy your agent to the Cardano-powered marketplace.',
+                                icon: <Cpu className="text-primary" />
+                            },
+                            {
+                                step: '02',
+                                title: 'Users Stake & Access',
+                                desc: 'Users stake ADA to access your agent. Smart contracts handle all transactions transparently on Cardano.',
+                                icon: <Zap className="text-secondary" />
+                            },
+                            {
+                                step: '03',
+                                title: 'Earn Rewards',
+                                desc: 'Receive automatic ADA rewards for every interaction. Payments are instant and transparent via smart contracts.',
+                                icon: <Shield className="text-accent" />
+                            },
+                        ].map((step, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                transition={{ delay: i * 0.15 }}
+                                className="relative"
+                            >
+                                <div className="absolute -top-4 -left-4 text-6xl font-bold text-white/5">{step.step}</div>
+                                <div className="relative bg-surface border border-white/5 rounded-2xl p-8 hover:border-white/10 transition-colors">
+                                    <div className="w-12 h-12 bg-surfaceHighlight rounded-xl flex items-center justify-center mb-6">
+                                        {step.icon}
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-3">{step.title}</h3>
+                                    <p className="text-gray-400 leading-relaxed">{step.desc}</p>
+                                </div>
                             </motion.div>
                         ))}
                     </div>

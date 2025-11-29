@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 
 interface NotificationState {
-    type: 'connecting' | 'success' | 'error' | null;
+    type: 'connecting' | 'success' | 'error' | 'disconnecting' | 'disconnected' | null;
     message?: string;
     error?: string;
 }
@@ -35,13 +35,13 @@ export const WalletProvider: React.FC<{ children: ReactNode }> = ({ children }) 
     const handleDisconnect = () => {
         setShowDisconnectModal(false);
         setIsDisconnecting(true);
-        setNotification({ type: 'connecting', message: 'Disconnecting wallet...' });
+        setNotification({ type: 'disconnecting', message: 'Disconnecting wallet...' });
         
         // Animate disconnect
         setTimeout(() => {
             setIsWalletConnected(false);
             setIsDisconnecting(false);
-            setNotification({ type: 'success', message: 'Wallet disconnected successfully' });
+            setNotification({ type: 'disconnected', message: 'Wallet disconnected successfully' });
             router.push('/');
             
             // Clear notification after redirect

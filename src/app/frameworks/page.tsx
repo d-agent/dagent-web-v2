@@ -3,11 +3,43 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Box, Copy, BookOpen, Github, ArrowRight, Zap, Shield, Layers, Globe, Terminal } from 'lucide-react';
-import { ADK_SNIPPET, LANGGRAPH_SNIPPET } from '@/lib/constants';
+import { GOOGLE_ADK_SNIPPET, LANGGRAPH_SNIPPET, CREWAI_SNIPPET } from '@/lib/constants';
+
+type FrameworkType = 'Google ADK' | 'LangGraph' | 'CrewAI';
 
 export default function FrameworksPage() {
-    const [selectedFramework, setSelectedFramework] = useState<'ADK' | 'LangGraph'>('ADK');
+    const [selectedFramework, setSelectedFramework] = useState<FrameworkType>('Google ADK');
     const [terminalLines, setTerminalLines] = useState<string[]>([]);
+
+    const getSnippet = (framework: FrameworkType) => {
+        switch (framework) {
+            case 'Google ADK':
+                return GOOGLE_ADK_SNIPPET;
+            case 'LangGraph':
+                return LANGGRAPH_SNIPPET;
+            case 'CrewAI':
+                return CREWAI_SNIPPET;
+            default:
+                return GOOGLE_ADK_SNIPPET;
+        }
+    };
+
+    const getFileName = (framework: FrameworkType) => {
+        switch (framework) {
+            case 'Google ADK':
+                return 'src/agent.py';
+            case 'LangGraph':
+                return 'src/graph.ts';
+            case 'CrewAI':
+                return 'src/crew.py';
+            default:
+                return 'src/agent.py';
+        }
+    };
+
+    const isComingSoon = (framework: FrameworkType) => {
+        return framework === 'LangGraph' || framework === 'CrewAI';
+    };
 
     useEffect(() => {
         setTerminalLines([]);
@@ -29,6 +61,8 @@ export default function FrameworksPage() {
         });
     }, [selectedFramework]);
 
+    const frameworks: FrameworkType[] = ['Google ADK', 'LangGraph', 'CrewAI'];
+
     return (
         <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto flex flex-col min-h-screen">
             {/* Header */}
@@ -39,17 +73,25 @@ export default function FrameworksPage() {
                         The complete toolkit for building autonomous agents on Cardano.
                     </p>
                 </div>
-                <div className="flex space-x-2 bg-surface border border-white/10 p-1 rounded-lg mt-6 md:mt-0">
-                    {['ADK', 'LangGraph'].map((fw) => (
+                <div className="flex flex-wrap gap-2 bg-surface border border-white/10 p-1 rounded-lg mt-6 md:mt-0">
+                    {frameworks.map((fw) => (
                         <button
                             key={fw}
-                            onClick={() => setSelectedFramework(fw as any)}
-                            className={`px-6 py-2 rounded-md font-mono text-sm transition-all ${selectedFramework === fw
-                                    ? 'bg-white/10 text-white shadow-sm'
+                            onClick={() => !isComingSoon(fw) && setSelectedFramework(fw)}
+                            disabled={isComingSoon(fw)}
+                            className={`px-4 py-2 rounded-md font-mono text-xs transition-all relative ${selectedFramework === fw
+                                ? 'bg-white/10 text-white shadow-sm'
+                                : isComingSoon(fw)
+                                    ? 'text-gray-600 cursor-not-allowed'
                                     : 'text-gray-500 hover:text-gray-300'
                                 }`}
                         >
                             {fw}
+                            {isComingSoon(fw) && (
+                                <span className="ml-2 px-2 py-0.5 bg-yellow-500/20 text-yellow-500 text-[10px] rounded-full border border-yellow-500/30">
+                                    Soon
+                                </span>
+                            )}
                         </button>
                     ))}
                 </div>
@@ -65,12 +107,16 @@ export default function FrameworksPage() {
                             Developer Resources
                         </h4>
                         <p className="text-gray-400 mb-8">
-                            Get up and running with the {selectedFramework} in minutes. We provide comprehensive documentation, examples, and community support.
+                            Get up and running with {selectedFramework} in minutes. We provide comprehensive documentation, examples, and community support.
                         </p>
                         <div className="space-y-4">
                             <div className="bg-[#050505] border border-white/10 rounded-lg p-5 flex items-center justify-between group">
                                 <code className="text-gray-300 font-mono text-sm">
-                                    <span className="text-secondary">$</span> bun add @dagent/{selectedFramework.toLowerCase()}
+                                    <span className="text-secondary">$</span> {selectedFramework === 'LangGraph'
+                                        ? `bun add @dagent/langgraph`
+                                        : selectedFramework === 'Google ADK'
+                                            ? 'pip install google-adk dagent-tool'
+                                            : 'pip install crewai dagent-tool'}
                                 </code>
                                 <button className="text-gray-500 hover:text-white transition-colors">
                                     <Copy size={16} />
@@ -88,7 +134,7 @@ export default function FrameworksPage() {
                             </ul>
                         </div>
                     </div>
-                    <a 
+                    <a
                         href="https://github.com/d-agent"
                         target="_blank"
                         rel="noopener noreferrer"
@@ -107,13 +153,13 @@ export default function FrameworksPage() {
                             <div className="w-3 h-3 rounded-full bg-green-500/50" />
                         </div>
                         <span className="text-xs font-mono text-gray-500">
-                            {selectedFramework === 'ADK' ? 'src/main.ts' : 'src/graph.ts'}
+                            {getFileName(selectedFramework)}
                         </span>
                         <Copy size={14} className="text-gray-500 hover:text-white cursor-pointer" />
                     </div>
                     <div className="p-6 overflow-auto custom-scrollbar flex-1">
                         <pre className="font-mono text-sm leading-relaxed text-gray-300">
-                            {selectedFramework === 'ADK' ? ADK_SNIPPET : LANGGRAPH_SNIPPET}
+                            {getSnippet(selectedFramework)}
                         </pre>
                     </div>
                 </div>

@@ -134,3 +134,40 @@ const app = DagentWrapper(graph.compile(), {
   network: 'dagent-mainnet',
   monetization: { enabled: true, cost: 0.05 }
 });`;
+
+export const GOOGLE_ADK_SNIPPET = `from google.adk.agents.llm_agent import Agent
+from dagent_tool import adk_tool
+
+root_agent = Agent(
+    model='gemini-2.5-flash',
+    name='root_agent',
+    description='A helpful assistant for user questions.',
+    instruction='Answer user questions to the best of your knowledge and use adk_tool to connect with other agents and answer the questions effectively',
+    tools=[adk_tool]
+)`;
+
+export const CREWAI_SNIPPET = `from crewai import Agent, Task, Crew
+from dagent_tool import dagent_tool
+
+# Create your agent with Dagent integration
+researcher = Agent(
+    role='Research Assistant',
+    goal='Gather and analyze information',
+    tools=[dagent_tool],
+    backstory='Expert researcher with access to Dagent network',
+    verbose=True
+)
+
+# Define tasks
+task = Task(
+    description='Research latest AI trends',
+    agent=researcher
+)
+
+# Create and deploy crew
+crew = Crew(
+    agents=[researcher],
+    tasks=[task]
+)
+
+crew.kickoff()`;
