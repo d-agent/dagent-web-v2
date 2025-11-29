@@ -9,26 +9,30 @@ const ApiKey = z.object({
 });
 
 export class ApiKeyModule {
-  constructor(private axios: AxiosInstance) {}
+  private axios: AxiosInstance;
+  
+  constructor(axios: AxiosInstance) {
+    this.axios = axios;
+  }
 
   async createApiKey(name: string) {
     const response = await this.axios.post('/apikey/create', { name });
-    return ApiKey.parse(response);
+    return response;
   }
 
   async getAllApiKeys() {
     const response = await this.axios.get('/apikey/all');
-    return z.array(ApiKey).parse(response);
+    return response;
   }
 
   async updateApiKey(apiKeyId: string) {
     const response = await this.axios.put('/apikey/update', { api_key_id: apiKeyId });
-    return ApiKey.parse(response);
+    return response;
   }
 
   async deleteApiKey(apiKeyId: string) {
-    const response = await this.axios.delete('/apikey/delete', { 
-      data: { api_key_id: apiKeyId } 
+    const response = await this.axios.delete('/apikey/delete', {
+      data: { api_key_id: apiKeyId }
     });
     return response;
   }

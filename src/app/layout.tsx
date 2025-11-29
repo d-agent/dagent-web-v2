@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { NotificationWrapper } from "@/components/NotificationWrapper";
+import { QueryProvider } from "@/components/QueryProvider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const robotoMono = Roboto_Mono({ subsets: ["latin"], variable: "--font-roboto-mono" });
@@ -23,14 +24,16 @@ export default function RootLayout({
     return (
         <html lang="en">
             <body className={`${inter.variable} ${robotoMono.variable} ${pressStart2P.variable} font-sans bg-background text-gray-100 selection:bg-primary/30 selection:text-white flex flex-col min-h-screen`}>
-                <WalletProvider>
-                    <Header />
-                    <main className="flex-1 flex flex-col w-full relative">
-                        {children}
-                    </main>
-                    <Footer />
-                    <NotificationWrapper />
-                </WalletProvider>
+                <QueryProvider>
+                    <WalletProvider>
+                        <Header />
+                        <main className="flex-1 flex flex-col w-full relative">
+                            {children}
+                        </main>
+                        <Footer />
+                        <NotificationWrapper />
+                    </WalletProvider>
+                </QueryProvider>
             </body>
         </html>
     );

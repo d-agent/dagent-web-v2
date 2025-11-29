@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { X, Wallet, Download, ExternalLink, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
 import { BrowserWallet } from '@meshsdk/core';
-import axios from 'axios';
+import { useGetNonce, useVerifySignature } from '@/hooks/useAuth';
+import api from '@/lib/api';
 
 interface WalletSelectionModalProps {
     onClose: () => void;
@@ -34,6 +35,9 @@ export const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({
     const [availableWallets, setAvailableWallets] = useState<CardanoWallet[]>([]);
     const [currentStep, setCurrentStep] = useState<string>('');
     const [isDetecting, setIsDetecting] = useState(true);
+    
+    const getNonceMutation = useGetNonce();
+    const verifySignatureMutation = useVerifySignature();
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -165,11 +169,8 @@ export const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({
             console.log('User address:', userAddress);
             setCurrentStep('Requesting authentication nonce...');
 
-            const nonceResponse = await axios.post('https://api.dagent.dev/auth/nonce', {
-                address: userAddress
-            });
-
-            const nonce = nonceResponse.data.nonce;
+            const nonceResponse = await getNonceMutation.mutateAsync(userAddress);
+            const nonce = (nonceResponse as any).nonce;
             console.log('Nonce received:', nonce);
 
             setCurrentStep('Please sign the message in your wallet...');
@@ -178,7 +179,7 @@ export const WalletSelectionModal: React.FC<WalletSelectionModalProps> = ({
             console.log('Message signed:', signature);
             setCurrentStep('Verifying signature...');
 
-            await axios.post('https://api.dagent.dev/auth/verify', {
+            await verifySignatureMutation.mutateAsync({
                 address: userAddress,
                 signature: signature
             });
