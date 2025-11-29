@@ -12,19 +12,18 @@ interface DisconnectModalProps {
 export const DisconnectModal: React.FC<DisconnectModalProps> = ({ onClose, onConfirm }) => {
     return (
         <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: -30 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -30 }}
+            initial={{ opacity: 0, scale: 0.9, x: 100 }}
+            animate={{ opacity: 1, scale: 1, x: 0 }}
+            exit={{ opacity: 0, scale: 0.9, x: 100 }}
             transition={{ duration: 0.3, type: "spring", stiffness: 200 }}
-            className="fixed top-24 left-1/2 z-[200]"
-            style={{ transform: 'translateX(-50%)' }}
+            className="fixed top-2 right-2 z-[200]"
             role="dialog"
             aria-modal="true"
         >
             <div className="bg-[#0A0A0A] border-2 border-red-500/50 rounded-2xl p-6 w-80 h-80 shadow-[0_0_40px_rgba(239,68,68,0.3)] relative flex flex-col overflow-hidden">
                 {/* Animated background glow */}
                 <div className="absolute inset-0 bg-red-500/5 animate-pulse" />
-                
+
                 <button
                     onClick={onClose}
                     className="absolute top-4 right-4 text-gray-500 hover:text-white transition-colors z-10"

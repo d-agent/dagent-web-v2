@@ -41,11 +41,11 @@ export const Header = () => {
         <header className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[95%] max-w-7xl animate-in fade-in slide-in-from-top-10 duration-500">
             <div className="backdrop-blur-xl bg-black/80 border border-white/10 rounded-2xl p-2 px-4 flex items-center justify-between shadow-2xl">
                 <Link href="/" className="flex items-center space-x-3 cursor-pointer">
-                    <Image 
-                        src="/logo.png" 
-                        alt="Dagent Logo" 
-                        width={48} 
-                        height={48} 
+                    <Image
+                        src="/logo.png"
+                        alt="Dagent Logo"
+                        width={48}
+                        height={48}
                         className="w-12 h-12 object-contain"
                         priority
                         quality={90}

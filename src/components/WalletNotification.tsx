@@ -40,13 +40,12 @@ export const WalletNotification: React.FC<WalletNotificationProps> = ({
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: -30 }}
                 transition={{ duration: 0.3, type: "spring", stiffness: 200 }}
-                className="fixed top-24 left-1/2 -translate-x-1/2 z-[200]"
-                style={{ transform: 'translateX(-50%)' }}
+                className="fixed top-2 left-1/2 -translate-x-1/2 z-[200]"
             >
                 <div className="bg-[#0A0A0A] border-2 border-primary rounded-2xl p-8 w-80 h-80 shadow-[0_0_40px_rgba(0,255,148,0.3)] flex flex-col items-center justify-center relative overflow-hidden">
                     {/* Animated background glow */}
                     <div className="absolute inset-0 bg-primary/5 animate-pulse" />
-                    
+
                     <motion.div
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
@@ -114,7 +113,7 @@ export const WalletNotification: React.FC<WalletNotificationProps> = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -50 }}
             transition={{ duration: 0.3 }}
-            className="fixed top-24 left-1/2 -translate-x-1/2 z-[200] max-w-md w-[90%]"
+            className="fixed top-2 left-1/2 z-[200] w-full max-w-md px-4"
             style={{ transform: 'translateX(-50%)' }}
         >
             <div className={`bg-[#0A0A0A] border-2 ${content.borderColor} rounded-2xl p-4 shadow-2xl`}>
