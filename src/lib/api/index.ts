@@ -4,6 +4,7 @@ import { AuthModule } from './auth';
 import { AgentModule } from './agents';
 import { ApiKeyModule } from './apikeys';
 import { UserModule } from './user';
+import { WalletModule } from './wallet';
 
 class ApiSdk {
   private static instance: ApiSdk;
@@ -13,6 +14,7 @@ class ApiSdk {
   public agents: AgentModule;
   public apiKeys: ApiKeyModule;
   public user: UserModule;
+  public wallet: WalletModule;
 
   private constructor() {
     console.log('🔧 ApiSdk: Initializing with baseURL:', process.env.NEXT_PUBLIC_API_URL);
@@ -30,6 +32,7 @@ class ApiSdk {
     this.agents = new AgentModule(this.axiosInstance);
     this.apiKeys = new ApiKeyModule(this.axiosInstance);
     this.user = new UserModule(this.axiosInstance);
+    this.wallet = new WalletModule(this.axiosInstance);
   }
 
   static getInstance(): ApiSdk {

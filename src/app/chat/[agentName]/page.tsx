@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ArrowLeft, Send, Bot, User, Coins, Zap } from 'lucide-react';
+import { useListAgentsQuery, useRunAgentMutation } from '@/hooks/useAgents';
 import { MOCK_AGENTS } from '@/lib/constants';
 
 interface Message {
@@ -18,14 +19,15 @@ export default function ChatPage() {
     const agentName = params.agentName as string;
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
-    // Decode agent name from URL slug
-    const decodedName = agentName.split('-').map(word => 
-        word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ');
+    const { data: apiAgents } = useListAgentsQuery();
+    const runAgentMutation = useRunAgentMutation();
     
-    const agent = MOCK_AGENTS.find(a => 
+    // Use API agents if available, fallback to mock
+    const allAgents = apiAgents && apiAgents.length > 0 ? apiAgents : MOCK_AGENTS;
+    
+    const agent = allAgents.find(a => 
         a.name.toLowerCase().replace(/\s+/g, '-') === agentName
-    ) || MOCK_AGENTS[0];
+    ) || allAgents[0];
 
     const [messages, setMessages] = useState<Message[]>([
         {
@@ -54,21 +56,39 @@ export default function ChatPage() {
         };
 
         setMessages(prev => [...prev, userMessage]);
+        const currentInput = input;
         setInput('');
         setIsLoading(true);
 
-        // Simulate agent response and deduct credits
-        setTimeout(() => {
+        try {
+            const response = await runAgentMutation.mutateAsync({
+                id: agent.id,
+                message: currentInput
+            });
+            
             const assistantMessage: Message = {
                 id: (Date.now() + 1).toString(),
                 role: 'assistant',
-                content: `I understand you're asking about "${input}". Let me help you with that. This is a simulated response from ${agent.name}.`,
+                content: response.data || `I understand you're asking about "${currentInput}". Let me help you with that.`,
+                timestamp: new Date(),
+            };
+            
+            setMessages(prev => [...prev, assistantMessage]);
+            setCredits(prev => Math.max(0, prev - ((agent as any).costPerRequest || (agent as any).agentCost || 0.05) * 100));
+        } catch (error) {
+            console.error('Failed to get agent response:', error);
+            // Fallback to mock response
+            const assistantMessage: Message = {
+                id: (Date.now() + 1).toString(),
+                role: 'assistant',
+                content: `I understand you're asking about "${currentInput}". Let me help you with that. (Fallback response - API unavailable)`,
                 timestamp: new Date(),
             };
             setMessages(prev => [...prev, assistantMessage]);
-            setCredits(prev => Math.max(0, prev - agent.costPerRequest * 100)); // Deduct credits
+            setCredits(prev => Math.max(0, prev - 5)); // Small deduction for fallback
+        } finally {
             setIsLoading(false);
-        }, 1500);
+        }
     };
 
     return (
@@ -102,7 +122,7 @@ export default function ChatPage() {
                         <Zap size={16} className="text-yellow-400" />
                         <div>
                             <div className="text-xs text-gray-500 font-mono">Cost/Request</div>
-                            <div className="text-sm font-bold text-primary font-mono">${agent.costPerRequest}</div>
+                            <div className="text-sm font-bold text-primary font-mono">${(agent as any).costPerRequest || (agent as any).agentCost || '0.05'}</div>
                         </div>
                     </div>
                 </div>

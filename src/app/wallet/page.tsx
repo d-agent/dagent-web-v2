@@ -1,17 +1,32 @@
 "use client";
 
 import React, { useState } from 'react';
-import { TrendingUp, Layers, Zap } from 'lucide-react';
+import { TrendingUp, Layers, Zap, Loader2 } from 'lucide-react';
+import { useWalletBalanceQuery, useWalletTransactionsQuery, useWalletStakesQuery, useClaimRewardsMutation } from '@/hooks/useWallet';
 import { MOCK_STAKES, MOCK_TRANSACTIONS } from '@/lib/constants';
 import { WalletStats } from '@/lib/types';
 
 export default function WalletPage() {
-    const [walletStats, setWalletStats] = useState<WalletStats>({
-        balance: 6450.25,
-        staked: 5000.00,
-        earnings: 342.10,
-        apy: 12.5
-    });
+    const { data: balance, isLoading: balanceLoading } = useWalletBalanceQuery();
+    const { data: transactions, isLoading: transactionsLoading } = useWalletTransactionsQuery();
+    const { data: stakes, isLoading: stakesLoading } = useWalletStakesQuery();
+    const claimRewardsMutation = useClaimRewardsMutation();
+    
+    // Use API data if available, fallback to mock
+    const displayBalance = balance || { ada: 6450.25, usd: 7892.45 };
+    const displayTransactions = transactions && transactions.length > 0 ? transactions : MOCK_TRANSACTIONS;
+    const displayStakes = stakes && stakes.length > 0 ? stakes : MOCK_STAKES;
+    
+    const totalStaked = displayStakes.reduce((sum, stake) => sum + stake.amount, 0);
+    const totalEarnings = displayStakes.reduce((sum, stake) => sum + stake.earned, 0);
+    
+    const handleClaimRewards = async (stakeId: string) => {
+        try {
+            await claimRewardsMutation.mutateAsync(stakeId);
+        } catch (error) {
+            console.error('Failed to claim rewards:', error);
+        }
+    };
 
     return (
         <div className="pt-32 pb-20 px-6 max-w-7xl mx-auto w-full min-h-screen">
@@ -40,15 +55,24 @@ export default function WalletPage() {
 
                     <div className="relative z-10">
                         <div className="text-sm text-gray-400 mb-2">TOTAL BALANCE</div>
-                        <div className="text-6xl font-bold font-mono tracking-tighter text-white">
-                            {walletStats.balance.toLocaleString()} <span className="text-3xl text-primary">DAG</span>
-                        </div>
-                        <div className="flex items-center gap-4 text-green-400 text-sm mt-4">
-                            <span className="bg-green-500/10 px-2 py-1 rounded border border-green-500/20 flex items-center gap-1">
-                                <TrendingUp size={14} /> +12.5%
-                            </span>
-                            <span className="text-gray-500">~$7,892.45 USD</span>
-                        </div>
+                        {balanceLoading ? (
+                            <div className="flex items-center gap-3 text-gray-400">
+                                <Loader2 size={24} className="animate-spin" />
+                                <span>Loading balance...</span>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="text-6xl font-bold font-mono tracking-tighter text-white">
+                                    {displayBalance.ada.toLocaleString()} <span className="text-3xl text-primary">ADA</span>
+                                </div>
+                                <div className="flex items-center gap-4 text-green-400 text-sm mt-4">
+                                    <span className="bg-green-500/10 px-2 py-1 rounded border border-green-500/20 flex items-center gap-1">
+                                        <TrendingUp size={14} /> +12.5%
+                                    </span>
+                                    <span className="text-gray-500">~${displayBalance.usd.toLocaleString()} USD</span>
+                                </div>
+                            </>
+                        )}
                     </div>
 
                     <div className="relative z-10 flex gap-4 mt-4">
@@ -68,21 +92,41 @@ export default function WalletPage() {
                             <Layers size={20} className="text-secondary" /> Staking Rewards
                         </h3>
                         <div className="space-y-6">
-                            <div>
-                                <div className="text-gray-500 text-xs mb-1">TOTAL STAKED</div>
-                                <div className="text-2xl font-mono font-bold">{walletStats.staked.toLocaleString()} DAG</div>
-                                <div className="w-full bg-white/10 h-1 mt-2 rounded-full overflow-hidden">
-                                    <div className="bg-secondary w-[70%] h-full" />
+                            {stakesLoading ? (
+                                <div className="flex items-center gap-2 text-gray-400">
+                                    <Loader2 size={16} className="animate-spin" />
+                                    <span>Loading stakes...</span>
                                 </div>
-                            </div>
-                            <div>
-                                <div className="text-gray-500 text-xs mb-1">UNCLAIMED REWARDS</div>
-                                <div className="text-2xl font-mono font-bold text-primary">{walletStats.earnings.toLocaleString()} DAG</div>
-                            </div>
+                            ) : (
+                                <>
+                                    <div>
+                                        <div className="text-gray-500 text-xs mb-1">TOTAL STAKED</div>
+                                        <div className="text-2xl font-mono font-bold">{totalStaked.toLocaleString()} ADA</div>
+                                        <div className="w-full bg-white/10 h-1 mt-2 rounded-full overflow-hidden">
+                                            <div className="bg-secondary w-[70%] h-full" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="text-gray-500 text-xs mb-1">UNCLAIMED REWARDS</div>
+                                        <div className="text-2xl font-mono font-bold text-primary">{totalEarnings.toLocaleString()} ADA</div>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </div>
-                    <button className="w-full py-3 bg-secondary/10 border border-secondary/30 text-secondary rounded-xl font-bold text-sm hover:bg-secondary/20 transition-colors">
-                        Claim Rewards
+                    <button 
+                        onClick={() => displayStakes.length > 0 && handleClaimRewards(displayStakes[0].id)}
+                        disabled={claimRewardsMutation.isPending || totalEarnings === 0}
+                        className="w-full py-3 bg-secondary/10 border border-secondary/30 text-secondary rounded-xl font-bold text-sm hover:bg-secondary/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                    >
+                        {claimRewardsMutation.isPending ? (
+                            <>
+                                <Loader2 size={16} className="animate-spin" />
+                                Claiming...
+                            </>
+                        ) : (
+                            'Claim Rewards'
+                        )}
                     </button>
                 </div>
             </div>
@@ -93,8 +137,15 @@ export default function WalletPage() {
                     <div className="flex items-center justify-between mb-6">
                         <h3 className="font-bold text-lg">Active Agent Stakes</h3>
                     </div>
-                    <div className="space-y-4">
-                        {MOCK_STAKES.map(stake => (
+                    {stakesLoading ? (
+                        <div className="flex justify-center items-center py-8">
+                            <div className="text-gray-400 flex items-center gap-2">
+                                <Loader2 size={16} className="animate-spin" /> Loading stakes...
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            {displayStakes.map(stake => (
                             <div key={stake.id} className="flex items-center justify-between p-4 bg-black/40 rounded-xl border border-white/5 hover:border-white/10 transition-colors">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 bg-surfaceHighlight rounded-lg flex items-center justify-center text-secondary">
@@ -106,12 +157,13 @@ export default function WalletPage() {
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <div className="font-mono font-bold">{stake.amount.toLocaleString()} DAG</div>
+                                    <div className="font-mono font-bold">{stake.amount.toLocaleString()} ADA</div>
                                     <div className="text-xs text-gray-500">Earned: {stake.earned}</div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Activity Feed */}
@@ -120,8 +172,15 @@ export default function WalletPage() {
                         <h3 className="font-bold text-lg">Recent Activity</h3>
                         <button className="text-xs text-primary hover:underline">View Explorer</button>
                     </div>
-                    <div className="space-y-6">
-                        {MOCK_TRANSACTIONS.map((tx) => (
+                    {transactionsLoading ? (
+                        <div className="flex justify-center items-center py-8">
+                            <div className="text-gray-400 flex items-center gap-2">
+                                <Loader2 size={16} className="animate-spin" /> Loading transactions...
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {displayTransactions.map((tx) => (
                             <div key={tx.id} className="relative pl-6 border-l border-white/10 pb-2 last:pb-0 group">
                                 <div className={`absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full ${tx.amount.startsWith('+') ? 'bg-green-500' : 'bg-gray-500'} group-hover:scale-125 transition-transform`} />
                                 <div className="flex justify-between items-start">
@@ -138,8 +197,9 @@ export default function WalletPage() {
                                     </div>
                                 </div>
                             </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
