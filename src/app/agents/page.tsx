@@ -262,7 +262,7 @@ export default function AgentsPage() {
                                     <button 
                                         onClick={() => {
                                             const agentSlug = agent.name.toLowerCase().replace(/\s+/g, '-');
-                                            router.push(`/chat/${agentSlug}`);
+                                            router.push(`/agents/chat?agent=${agentSlug}`);
                                         }}
                                         className="flex-1 py-2.5 bg-black border border-primary text-primary rounded-lg font-medium text-sm hover:bg-black/80 hover:border-primary/60 transition-colors flex items-center justify-center gap-2"
                                     >

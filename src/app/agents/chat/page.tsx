@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Send, Bot, User, Coins, Zap } from 'lucide-react';
 import { useListAgentsQuery, useRunAgentMutation } from '@/hooks/useAgents';
 import { MOCK_AGENTS } from '@/lib/constants';
@@ -15,9 +15,9 @@ interface Message {
 
 export default function ChatPage() {
 
-    const params = useParams();
     const router = useRouter();
-    const agentName = params.agentName as string;
+    const searchParams = useSearchParams();
+    const agentName = searchParams.get('agent');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     
     const { data: apiAgents } = useListAgentsQuery();
