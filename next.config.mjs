@@ -7,6 +7,9 @@ const nextConfig = {
   experimental: {
     optimizeCss: true,
   },
+  output: 'export',
+  trailingSlash: true,
+  distDir: 'out',
 };
 
 export default nextConfig;
