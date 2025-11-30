@@ -48,24 +48,26 @@ export class ServerSideBlockfrostProvider extends BlockfrostProvider {
 			}
 
 			const data = await response.json();
-			
+
 			if (data.utxo) {
 				// Convert Blockfrost format to MeshSDK format
-				return [{
-					input: {
-						txHash: data.utxo.tx_hash,
-						outputIndex: data.utxo.output_index,
+				return [
+					{
+						input: {
+							txHash: data.utxo.tx_hash,
+							outputIndex: data.utxo.output_index,
+						},
+						output: {
+							address: data.utxo.address,
+							amount: data.utxo.amount.map((asset: any) => ({
+								unit: asset.unit,
+								quantity: asset.quantity,
+							})),
+							plutusData: data.utxo.inline_datum || undefined,
+							dataHash: data.utxo.data_hash || undefined,
+						},
 					},
-					output: {
-						address: data.utxo.address,
-						amount: data.utxo.amount.map((asset: any) => ({
-							unit: asset.unit,
-							quantity: asset.quantity,
-						})),
-						plutusData: data.utxo.inline_datum || undefined,
-						dataHash: data.utxo.data_hash || undefined,
-					},
-				}];
+				];
 			}
 
 			return [];

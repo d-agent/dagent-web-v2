@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 // Disable body parsing and CSRF for this API route
-export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 export async function GET(request: NextRequest) {
 	try {
@@ -19,7 +19,10 @@ export async function GET(request: NextRequest) {
 
 		// Get Blockfrost API key from environment
 		const blockfrostApiKey = process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY;
-		if (!blockfrostApiKey || blockfrostApiKey === "previewYourBlockfrostApiKeyHere") {
+		if (
+			!blockfrostApiKey ||
+			blockfrostApiKey === "previewYourBlockfrostApiKeyHere"
+		) {
 			return NextResponse.json(
 				{ error: "Blockfrost API key not configured" },
 				{ status: 500 }

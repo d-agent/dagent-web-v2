@@ -48,7 +48,7 @@ export async function fetchStakeUtxo(
 		}
 
 		const data = await response.json();
-		
+
 		// Convert Blockfrost UTXO format to MeshSDK format if UTXO exists
 		if (data.utxo) {
 			return {

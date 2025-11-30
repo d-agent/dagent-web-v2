@@ -266,7 +266,7 @@ export const useStake = () => {
 			console.log("GetStake redeemer:", redeemer);
 
 			const utxo = await fetchStakeUtxo(blockfrostApiKey, "preview");
-			
+
 			// Check if UTXO exists
 			if (!utxo) {
 				console.log("No UTXO found at script address - no stakes yet");
@@ -288,7 +288,7 @@ export const useStake = () => {
 			// For now, return the raw datum since we need to properly decode it
 			// TODO: Implement proper datum decoding to extract stakes array
 			console.log("UTXO datum:", utxo.output.plutusData);
-			
+
 			return {
 				user: null, // Will be populated once datum decoding is implemented
 				datum: redeemer,
