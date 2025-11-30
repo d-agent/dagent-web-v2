@@ -7,8 +7,7 @@ import {
 	StakeRedeemer,
 	loadValidator,
 } from "@/lib/utils/contracts";
-import { ServerSideBlockfrostProvider } from "@/lib/utils/blockfrost-provider";
-import { MeshTxBuilder } from "@meshsdk/core";
+import { Transaction, Data } from "@meshsdk/core";
 import { useWallet } from "@meshsdk/react";
 
 export const useStake = () => {
@@ -44,114 +43,47 @@ export const useStake = () => {
 			console.log("Creating stake with:", { userAddress, amount, userId });
 
 			try {
-				// Initialize Blockfrost provider first
-				const blockfrostApiKey =
-					process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY || "";
-				if (
-					!blockfrostApiKey ||
-					blockfrostApiKey === "previewYourBlockfrostApiKeyHere"
-				) {
-					throw new Error(
-						"Blockfrost API key not configured. Please add NEXT_PUBLIC_BLOCKFROST_API_KEY to your .env file"
-					);
-				}
-
-				const utxo = await fetchStakeUtxo(blockfrostApiKey, "preview");
+				// Get script address
 				const addr = await scriptAddress("preview");
-				const validator = await loadValidator();
-
 				console.log("Script address:", addr);
-				console.log("UTXO found:", utxo);
 
-				const redeemer = await StakeRedeemer.create(
-					userAddress,
-					addr,
-					amount,
-					userId
+				// Create the datum with the staking information
+				const datumConstr: Data = {
+					alternative: 0,
+					fields: [
+						await StakeRedeemer.resolvePaymentKeyHash(userAddress), // seller address as pubkeyhash
+						BigInt(amount * 1_000_000), // price in lovelace
+						userId, // user ID or token
+						userId, // asset name or additional identifier
+					],
+				};
+
+				console.log("Datum created:", datumConstr);
+
+				// Convert amount to lovelace
+				const stakeLovelace = amount * 1_000_000;
+
+				// Build the transaction using Transaction API
+				const tx = new Transaction({ initiator: wallet }).sendAssets(
+					{
+						address: addr,
+						datum: {
+							value: datumConstr,
+						},
+					},
+					[
+						{
+							unit: "lovelace",
+							quantity: stakeLovelace.toString(),
+						},
+					]
 				);
 
-				console.log("Redeemer created:", redeemer);
-
-				const provider = new ServerSideBlockfrostProvider(blockfrostApiKey);
-
-				const txBuilder = new MeshTxBuilder({
-					fetcher: provider,
-					submitter: wallet,
-					evaluator: provider,
-				});
-
-				if (utxo) {
-					console.log("Building transaction to spend existing UTXO...");
-					console.log("UTXO details:", JSON.stringify(utxo, null, 2));
-
-					// Calculate new total amount at script (existing + new stake)
-					// Convert amount to lovelace (1 ADA = 1,000,000 lovelace)
-					const newStakeLovelace = amount * 1_000_000;
-
-					// Get existing amount from UTXO
-					const existingLovelace = parseInt(utxo.output.amount[0].quantity);
-					const totalLovelace = existingLovelace + newStakeLovelace;
-
-					console.log("Existing at script:", existingLovelace, "lovelace");
-					console.log("Adding stake:", newStakeLovelace, "lovelace");
-					console.log("Total to return:", totalLovelace, "lovelace");
-
-					// Get wallet UTXOs to fund the transaction
-					const walletUtxos = await wallet.getUtxos();
-					console.log("Wallet has", walletUtxos.length, "UTXOs available");
-
-					// Check if the UTXO has inline datum or datum hash
-					const hasInlineDatum = utxo.output.plutusData !== undefined;
-					const hasDatumHash = utxo.output.dataHash !== undefined;
-
-					console.log("Has inline datum:", hasInlineDatum);
-					console.log("Has datum hash:", hasDatumHash);
-
-					// Correct order: txIn -> declare script type -> provide script -> redeemer
-					txBuilder
-						.txIn(
-							utxo.input.txHash,
-							utxo.input.outputIndex,
-							utxo.output.amount,
-							utxo.output.address
-						)
-						.spendingPlutusScriptV2() // Declare it's Plutus V2 FIRST
-						.txInScript(validator.code) // THEN provide the script code
-						.txInRedeemerValue(redeemer) // THEN the redeemer
-						.txOut(addr, [
-							{ unit: "lovelace", quantity: totalLovelace.toString() },
-						])
-						.txOutInlineDatumValue(redeemer)
-						.selectUtxosFrom(walletUtxos)
-						.changeAddress(userAddress);
-				} else {
-					// No UTXO at script address yet - this is the first stake
-					// We need to create an initial datum and send funds to the script
-					console.log("No UTXO found - creating initial stake...");
-
-					// Convert amount to lovelace
-					const stakeLovelace = amount * 1_000_000;
-
-					// Get wallet UTXOs to fund the transaction
-					const walletUtxos = await wallet.getUtxos();
-					console.log("Wallet has", walletUtxos.length, "UTXOs available");
-					console.log("Sending", stakeLovelace, "lovelace to script address");
-
-					// Build transaction to send funds to script with inline datum
-					txBuilder
-						.txOut(addr, [
-							{ unit: "lovelace", quantity: stakeLovelace.toString() },
-						])
-						.txOutInlineDatumValue(redeemer) // Set the redeemer as initial datum
-						.selectUtxosFrom(walletUtxos)
-						.changeAddress(userAddress);
-				}
-
-				console.log("Completing transaction...");
-				const unsignedTx = await txBuilder.complete();
+				console.log("Building transaction...");
+				const unsignedTx = await tx.build();
 
 				console.log("Signing transaction...");
-				const signedTx = await wallet.signTx(unsignedTx, true);
+				const signedTx = await wallet.signTx(unsignedTx);
 
 				console.log("Submitting transaction...");
 				const txHash = await wallet.submitTx(signedTx);
@@ -193,57 +125,38 @@ export const useStake = () => {
 				throw new Error("No wallet address found");
 			}
 
-			// Initialize Blockfrost provider
-			const blockfrostApiKey = process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY || "";
-			if (
-				!blockfrostApiKey ||
-				blockfrostApiKey === "previewYourBlockfrostApiKeyHere"
-			) {
-				throw new Error(
-					"Blockfrost API key not configured. Please add NEXT_PUBLIC_BLOCKFROST_API_KEY to your .env file"
-				);
+			try {
+				// Initialize Blockfrost provider
+				const blockfrostApiKey =
+					process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY || "";
+				if (
+					!blockfrostApiKey ||
+					blockfrostApiKey === "previewYourBlockfrostApiKeyHere"
+				) {
+					throw new Error(
+						"Blockfrost API key not configured. Please add NEXT_PUBLIC_BLOCKFROST_API_KEY to your .env file"
+					);
+				}
+
+				const utxo = await fetchStakeUtxo(blockfrostApiKey, "preview");
+				const addr = await scriptAddress("preview");
+				const validator = await loadValidator();
+
+				if (!utxo) {
+					throw new Error("No UTXO found at script address");
+				}
+
+				// Create redeemer for pulling stake
+				const redeemer = await StakeRedeemer.pull(userId, amount);
+
+				// Build the transaction to spend from script
+				// This would need proper implementation with script execution
+				// For now, throwing an error as it requires more complex logic
+				throw new Error("Pull stake not yet fully implemented");
+			} catch (error: any) {
+				console.error("Detailed pull stake error:", error);
+				throw new Error(error.message || "Failed to pull stake");
 			}
-
-			const utxo = await fetchStakeUtxo(blockfrostApiKey, "preview");
-			const addr = await scriptAddress("preview");
-			const validator = await loadValidator();
-
-			const redeemer = await StakeRedeemer.pull(userId, amount);
-
-			const provider = new ServerSideBlockfrostProvider(blockfrostApiKey);
-
-			const txBuilder = new MeshTxBuilder({
-				fetcher: provider,
-				submitter: wallet,
-				evaluator: provider,
-			});
-
-			if (utxo) {
-				txBuilder
-					.txIn(
-						utxo.input.txHash,
-						utxo.input.outputIndex,
-						utxo.output.amount,
-						utxo.output.address
-					)
-					// Declare this is a Plutus V2 script input
-					.spendingPlutusScriptV2()
-					// Provide the script code
-					.txInScript(validator.code)
-					// Indicate inline datum is present
-					.txInInlineDatumPresent()
-					// Provide the redeemer
-					.txInRedeemerValue(redeemer)
-					.txOut(addr, utxo.output.amount)
-					.txOutInlineDatumValue(utxo.output.plutusData || "")
-					.changeAddress(userAddress);
-			}
-
-			const unsignedTx = await txBuilder.complete();
-			const signedTx = await wallet.signTx(unsignedTx, true);
-			const txHash = await wallet.submitTx(signedTx);
-
-			return txHash;
 		},
 		[wallet, connected]
 	);
@@ -254,46 +167,28 @@ export const useStake = () => {
 				throw new Error("Wallet not connected");
 			}
 
-			const blockfrostApiKey = process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY || "";
-			if (
-				!blockfrostApiKey ||
-				blockfrostApiKey === "previewYourBlockfrostApiKeyHere"
-			) {
-				throw new Error("Blockfrost API key not configured");
-			}
+			try {
+				const blockfrostApiKey =
+					process.env.NEXT_PUBLIC_BLOCKFROST_API_KEY || "";
+				if (
+					!blockfrostApiKey ||
+					blockfrostApiKey === "previewYourBlockfrostApiKeyHere"
+				) {
+					throw new Error("Blockfrost API key not configured");
+				}
 
-			const redeemer = await StakeRedeemer.get(userId);
-			console.log("GetStake redeemer:", redeemer);
+				const utxo = await fetchStakeUtxo(blockfrostApiKey, "preview");
 
-			const utxo = await fetchStakeUtxo(blockfrostApiKey, "preview");
-
-			// Check if UTXO exists
-			if (!utxo) {
-				console.log("No UTXO found at script address - no stakes yet");
+				// This needs proper implementation to decode and read datum
+				// For now, returning basic structure
 				return {
 					user: null,
-					datum: redeemer,
+					datum: null,
 				};
+			} catch (error: any) {
+				console.error("Error getting stake:", error);
+				throw new Error(error.message || "Failed to get stake information");
 			}
-
-			// Check if the UTXO has plutus data (datum)
-			if (!utxo.output.plutusData) {
-				console.log("UTXO found but no datum present");
-				return {
-					user: null,
-					datum: redeemer,
-				};
-			}
-
-			// For now, return the raw datum since we need to properly decode it
-			// TODO: Implement proper datum decoding to extract stakes array
-			console.log("UTXO datum:", utxo.output.plutusData);
-
-			return {
-				user: null, // Will be populated once datum decoding is implemented
-				datum: redeemer,
-				rawDatum: utxo.output.plutusData,
-			};
 		},
 		[wallet, connected]
 	);

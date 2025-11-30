@@ -33,46 +33,14 @@ export async function fetchStakeUtxo(
 	blockfrostApiKey: string,
 	network: "preprod" | "mainnet" | "preview"
 ) {
+	const { BlockfrostProvider } = await import("@meshsdk/core");
 	const addr = await scriptAddress(network);
 
-	try {
-		// Call our API route instead of Blockfrost directly to avoid CORS issues
-		const response = await fetch(
-			`/api/stake/utxo?address=${encodeURIComponent(addr)}&network=${network}`
-		);
+	// Use Blockfrost to fetch UTXOs at the script address
+	const provider = new BlockfrostProvider(blockfrostApiKey);
+	const utxos = await provider.fetchAddressUTxOs(addr);
 
-		if (!response.ok) {
-			const errorData = await response.json();
-			console.error("API error fetching UTXO:", errorData);
-			return null;
-		}
-
-		const data = await response.json();
-
-		// Convert Blockfrost UTXO format to MeshSDK format if UTXO exists
-		if (data.utxo) {
-			return {
-				input: {
-					txHash: data.utxo.tx_hash,
-					outputIndex: data.utxo.output_index,
-				},
-				output: {
-					address: data.utxo.address,
-					amount: data.utxo.amount.map((asset: any) => ({
-						unit: asset.unit,
-						quantity: asset.quantity,
-					})),
-					plutusData: data.utxo.inline_datum || undefined,
-					dataHash: data.utxo.data_hash || undefined,
-				},
-			};
-		}
-
-		return null;
-	} catch (error) {
-		console.error("Error fetching stake UTXO:", error);
-		return null;
-	}
+	return utxos?.[0] ?? null;
 }
 
 // Helper function to convert Bech32 address to payment credential hash
@@ -114,6 +82,13 @@ function stringToHex(str: string): string {
 }
 
 export const StakeRedeemer = {
+	resolvePaymentKeyHash: async (address: string) => {
+		await ensureLucidLoaded();
+		// Convert Bech32 address to payment credential hash and return as hex string
+		const hash = await addressToPaymentHash(address);
+		return hash;
+	},
+
 	create: async (
 		client: string,
 		provider: string,
