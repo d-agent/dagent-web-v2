@@ -33,6 +33,7 @@ export interface WalletStats {
     staked: number;
     earnings: number;
     apy: number;
+    address: string;
 }
 
 export enum Tab {

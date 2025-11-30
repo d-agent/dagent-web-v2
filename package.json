@@ -21,6 +21,7 @@
     "critters": "^0.0.23",
     "framer-motion": "^11.3.8",
     "js-cookie": "^3.0.5",
+    "lucid-cardano": "^0.10.11",
     "lucide-react": "^0.408.0",
     "next": "^14.2.33",
     "react": "^18",

@@ -1,16 +1,28 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Check, Cpu, Shield, Zap, Wallet, Code, Terminal, Sparkles } from 'lucide-react';
 import { CoreAgentNetwork } from '@/components/AnimatedBeam';
 import { WalletSelectionModal } from '@/components/WalletSelectionModal';
 import { WalletNotification } from '@/components/WalletNotification';
-import { useWallet } from '@/contexts/WalletContext';
 import Link from 'next/link';
+import { useWallet } from '@meshsdk/react';
 
 export default function Home() {
-    const { isWalletConnected, setIsWalletConnected, showWalletModal, setShowWalletModal, notification, setNotification } = useWallet();
+    const { wallet, connected } = useWallet();
+    const [showWalletModal, setShowWalletModal] = useState(false);
+    const [isWalletConnected, setIsWalletConnected] = useState(false);
+    const [notification, setNotification] = useState<{ 
+        type: 'success' | 'error' | null; 
+        message?: string; 
+        error?: string 
+    }>({ type: null });
+
+    // Sync wallet connection state with Mesh SDK
+    useEffect(() => {
+        setIsWalletConnected(connected);
+    }, [connected]);
 
     const handleConnect = () => {
         setNotification({ type: 'success', message: 'Wallet connected successfully!' });

@@ -67,6 +67,8 @@ class ApiSdk {
   setTokens(accessToken: string, refreshToken?: string, userId?: string) {
     Cookies.set('access_token', accessToken, { expires: 7 });
     localStorage.setItem('access_token', accessToken);
+
+    console.log(userId);
     
     if (refreshToken) {
       Cookies.set('refresh_token', refreshToken, { expires: 30 });
@@ -74,8 +76,8 @@ class ApiSdk {
     }
     
     if (userId) {
-      Cookies.set('user_id', userId, { expires: 7 });
-      localStorage.setItem('user_id', userId);
+      Cookies.set("userId", userId, { expires: 7 });
+      localStorage.setItem("userId", userId);
     }
   }
 
