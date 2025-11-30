@@ -30,3 +30,4 @@ build
 
 .open-next
 node_modules
+.env
