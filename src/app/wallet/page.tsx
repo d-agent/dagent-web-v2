@@ -42,7 +42,7 @@ export default function WalletPage() {
 		if (connected && wallet) {
 			getStakeByAddress(localStorage.getItem("userId") || "")
 				.then((r) => {
-					setWalletStats((prev) => ({ ...prev, staked: r?.user?.amount || 0 }));
+					setWalletStats((prev) => ({ ...prev, staked: (r?.user as any)?.amount || 0 }));
 				})
 				.catch((error) => {
 					console.error("Error fetching stake:", error);
@@ -236,9 +236,8 @@ export default function WalletPage() {
 								className="relative pl-6 border-l border-white/10 pb-2 last:pb-0 group"
 							>
 								<div
-									className={`absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full ${
-										tx.amount.startsWith("+") ? "bg-green-500" : "bg-gray-500"
-									} group-hover:scale-125 transition-transform`}
+									className={`absolute -left-[5px] top-1 w-2.5 h-2.5 rounded-full ${tx.amount.startsWith("+") ? "bg-green-500" : "bg-gray-500"
+										} group-hover:scale-125 transition-transform`}
 								/>
 								<div className="flex justify-between items-start">
 									<div>
@@ -252,11 +251,10 @@ export default function WalletPage() {
 										</div>
 									</div>
 									<div
-										className={`font-mono text-sm font-bold ${
-											tx.amount.startsWith("+")
-												? "text-green-400"
-												: "text-white"
-										}`}
+										className={`font-mono text-sm font-bold ${tx.amount.startsWith("+")
+											? "text-green-400"
+											: "text-white"
+											}`}
 									>
 										{tx.amount}
 									</div>
