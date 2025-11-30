@@ -7,7 +7,8 @@ import {
 	StakeRedeemer,
 	loadValidator,
 } from "@/lib/utils/contracts";
-import { MeshTxBuilder, BlockfrostProvider } from "@meshsdk/core";
+import { ServerSideBlockfrostProvider } from "@/lib/utils/blockfrost-provider";
+import { MeshTxBuilder } from "@meshsdk/core";
 import { useWallet } from "@meshsdk/react";
 
 export const useStake = () => {
@@ -71,7 +72,7 @@ export const useStake = () => {
 
 				console.log("Redeemer created:", redeemer);
 
-				const provider = new BlockfrostProvider(blockfrostApiKey);
+				const provider = new ServerSideBlockfrostProvider(blockfrostApiKey);
 
 				const txBuilder = new MeshTxBuilder({
 					fetcher: provider,
@@ -106,40 +107,21 @@ export const useStake = () => {
 					console.log("Has inline datum:", hasInlineDatum);
 					console.log("Has datum hash:", hasDatumHash);
 
-					// Build the transaction
+					// Correct order: txIn -> declare script type -> provide script -> redeemer
 					txBuilder
-						// First, add the script input
 						.txIn(
 							utxo.input.txHash,
 							utxo.input.outputIndex,
 							utxo.output.amount,
 							utxo.output.address
 						)
-						// Declare this is a Plutus V2 script input
-						.spendingPlutusScriptV2()
-						// Provide the script code
-						.txInScript(validator.code);
-
-					// Handle datum based on what's present
-					if (hasInlineDatum) {
-						console.log("Using inline datum");
-						txBuilder.txInInlineDatumPresent();
-					} else if (hasDatumHash) {
-						console.log("Using datum hash");
-						txBuilder.txInDatumValue(utxo.output.plutusData || "");
-					} else {
-						throw new Error("UTXO has no datum - cannot spend from script");
-					}
-
-					// Provide the redeemer
-					txBuilder
-						.txInRedeemerValue(redeemer)
-						// Add the output back to the script with combined amount
+						.spendingPlutusScriptV2() // Declare it's Plutus V2 FIRST
+						.txInScript(validator.code) // THEN provide the script code
+						.txInRedeemerValue(redeemer) // THEN the redeemer
 						.txOut(addr, [
 							{ unit: "lovelace", quantity: totalLovelace.toString() },
 						])
-						.txOutInlineDatumValue(redeemer) // Use the redeemer as the new datum
-						// Select coins from wallet to cover the new stake amount and fees
+						.txOutInlineDatumValue(redeemer)
 						.selectUtxosFrom(walletUtxos)
 						.changeAddress(userAddress);
 				} else {
@@ -228,7 +210,7 @@ export const useStake = () => {
 
 			const redeemer = await StakeRedeemer.pull(userId, amount);
 
-			const provider = new BlockfrostProvider(blockfrostApiKey);
+			const provider = new ServerSideBlockfrostProvider(blockfrostApiKey);
 
 			const txBuilder = new MeshTxBuilder({
 				fetcher: provider,
@@ -284,14 +266,33 @@ export const useStake = () => {
 			console.log("GetStake redeemer:", redeemer);
 
 			const utxo = await fetchStakeUtxo(blockfrostApiKey, "preview");
-			const stakes = utxo?.datum.stakes || [];
+			
+			// Check if UTXO exists
+			if (!utxo) {
+				console.log("No UTXO found at script address - no stakes yet");
+				return {
+					user: null,
+					datum: redeemer,
+				};
+			}
 
-			const match = stakes.find(
-				(s: any) => JSON.stringify(s.user_id) === JSON.stringify(userId)
-			);
+			// Check if the UTXO has plutus data (datum)
+			if (!utxo.output.plutusData) {
+				console.log("UTXO found but no datum present");
+				return {
+					user: null,
+					datum: redeemer,
+				};
+			}
+
+			// For now, return the raw datum since we need to properly decode it
+			// TODO: Implement proper datum decoding to extract stakes array
+			console.log("UTXO datum:", utxo.output.plutusData);
+			
 			return {
-				user: match,
+				user: null, // Will be populated once datum decoding is implemented
 				datum: redeemer,
+				rawDatum: utxo.output.plutusData,
 			};
 		},
 		[wallet, connected]
