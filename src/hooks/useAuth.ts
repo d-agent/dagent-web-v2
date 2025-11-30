@@ -14,7 +14,9 @@ export const useVerifySignature = () => {
       signature: { key: string; signature: string } 
     }) => api.auth.verifySignature(address, signature),
     onSuccess: (data: any) => {
+      console.log(data)
       api.setTokens(data.token, undefined, data.userId);
+      localStorage.setItem('u', data.token);
     },
   });
 };
