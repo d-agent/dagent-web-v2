@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Send, Bot, User, Coins, Zap } from 'lucide-react';
 import { useListAgentsQuery, useRunAgentMutation } from '@/hooks/useAgents';
@@ -13,7 +13,7 @@ interface Message {
     timestamp: Date;
 }
 
-export default function ChatPage() {
+function ChatPageContent() {
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -196,6 +196,14 @@ export default function ChatPage() {
                 </button>
             </div>
         </div>
+    );
+}
+
+export default function ChatPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ChatPageContent />
+        </Suspense>
     );
 }
 
